@@ -1,0 +1,454 @@
+package com.movierental.servlet.admin;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
+
+import com.movierental.model.admin.Admin;
+import com.movierental.model.movie.ClassicMovie;
+import com.movierental.model.movie.Movie;
+import com.movierental.model.movie.MovieManager;
+import com.movierental.model.movie.NewRelease;
+
+/**
+ * Servlet for handling movie management (admin)
+ */
+@WebServlet("/admin/movies")
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024, // 1 MB
+        maxFileSize = 5 * 1024 * 1024,   // 5 MB
+        maxRequestSize = 10 * 1024 * 1024 // 10 MB
+)
+public class ManageMoviesServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Handles GET requests - display movie list or form
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Check if admin is logged in
+        HttpSession session = request.getSession(false);
+        Admin admin = (session != null) ? (Admin) session.getAttribute("admin") : null;
+
+        if (admin == null) {
+            // Not logged in, redirect to login
+            response.sendRedirect(request.getContextPath() + "/admin/login");
+            return;
+        }
+
+        // Get action from request
+        String action = request.getParameter("action");
+        String movieId = request.getParameter("id");
+
+        MovieManager movieManager = new MovieManager(getServletContext());
+
+        if ("add".equals(action)) {
+            // Display add movie form
+            request.getRequestDispatcher("/admin/movies/add.jsp").forward(request, response);
+            return;
+        } else if ("edit".equals(action) && movieId != null) {
+            // Display edit movie form
+            Movie movie = movieManager.getMovieById(movieId);
+
+            if (movie == null) {
+                session.setAttribute("errorMessage", "Movie not found");
+                response.sendRedirect(request.getContextPath() + "/admin/movies");
+                return;
+            }
+
+            request.setAttribute("movie", movie);
+
+            // Set movie type
+            if (movie instanceof NewRelease) {
+                request.setAttribute("movieType", "newRelease");
+            } else if (movie instanceof ClassicMovie) {
+                request.setAttribute("movieType", "classic");
+            } else {
+                request.setAttribute("movieType", "regular");
+            }
+
+            request.getRequestDispatcher("/admin/movies/edit.jsp").forward(request, response);
+            return;
+        } else if ("delete".equals(action) && movieId != null) {
+            // Delete movie
+            boolean deleted = movieManager.deleteMovie(movieId);
+
+            if (deleted) {
+                session.setAttribute("successMessage", "Movie deleted successfully");
+            } else {
+                session.setAttribute("errorMessage", "Failed to delete movie");
+            }
+
+            response.sendRedirect(request.getContextPath() + "/admin/movies");
+            return;
+        }
+
+        // Default action: display movie list
+        List<Movie> movies = movieManager.getAllMovies();
+        request.setAttribute("movies", movies);
+        request.getRequestDispatcher("/admin/movies/list.jsp").forward(request, response);
+    }
+
+    /**
+     * Handles POST requests - process movie add/edit form
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Check if admin is logged in
+        HttpSession session = request.getSession(false);
+        Admin admin = (session != null) ? (Admin) session.getAttribute("admin") : null;
+
+        if (admin == null) {
+            // Not logged in, redirect to login
+            response.sendRedirect(request.getContextPath() + "/admin/login");
+            return;
+        }
+
+        // Get action from request
+        String action = request.getParameter("action");
+
+        if ("add".equals(action)) {
+            // Process add movie form
+            processAddMovie(request, response);
+        } else if ("edit".equals(action)) {
+            // Process edit movie form
+            processEditMovie(request, response);
+        } else {
+            // Unknown action
+            session.setAttribute("errorMessage", "Unknown action");
+            response.sendRedirect(request.getContextPath() + "/admin/movies");
+        }
+    }
+
+    /**
+     * Process add movie form
+     */
+    private void processAddMovie(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+
+        // Get form parameters
+        String title = request.getParameter("title");
+        String director = request.getParameter("director");
+        String genre = request.getParameter("genre");
+        String releaseYearStr = request.getParameter("releaseYear");
+        String ratingStr = request.getParameter("rating");
+        String movieType = request.getParameter("movieType");
+
+        // Additional parameters for specific movie types
+        String releaseDateStr = request.getParameter("releaseDate");
+        String significance = request.getParameter("significance");
+        String hasAwardsStr = request.getParameter("hasAwards");
+
+        // Get the cover photo file part
+        Part coverPhotoPart = null;
+        try {
+            coverPhotoPart = request.getPart("coverPhoto");
+        } catch (Exception e) {
+            // Part not found or not a multipart request
+            getServletContext().log("Error getting coverPhoto part: " + e.getMessage());
+        }
+
+        // Validate required fields
+        if (title == null || director == null || genre == null ||
+                releaseYearStr == null || ratingStr == null || movieType == null ||
+                title.trim().isEmpty() || director.trim().isEmpty() || genre.trim().isEmpty() ||
+                releaseYearStr.trim().isEmpty() || ratingStr.trim().isEmpty()) {
+
+            session.setAttribute("errorMessage", "All fields are required");
+            response.sendRedirect(request.getContextPath() + "/admin/movies?action=add");
+            return;
+        }
+
+        try {
+            // Parse numeric values
+            int releaseYear = Integer.parseInt(releaseYearStr);
+            double rating = Double.parseDouble(ratingStr);
+
+            // Validate rating range (0-10)
+            if (rating < 0 || rating > 10) {
+                session.setAttribute("errorMessage", "Rating must be between 0 and 10");
+                response.sendRedirect(request.getContextPath() + "/admin/movies?action=add");
+                return;
+            }
+
+            // Create MovieManager with ServletContext
+            MovieManager movieManager = new MovieManager(getServletContext());
+
+            // Get cover photo input stream and file name if available
+            InputStream coverPhotoStream = null;
+            String originalFileName = null;
+
+            if (coverPhotoPart != null && coverPhotoPart.getSize() > 0) {
+                coverPhotoStream = coverPhotoPart.getInputStream();
+                String contentDisposition = coverPhotoPart.getHeader("content-disposition");
+                if (contentDisposition != null) {
+                    // Extract file name from content-disposition header
+                    for (String part : contentDisposition.split(";")) {
+                        part = part.trim();
+                        if (part.startsWith("filename=")) {
+                            originalFileName = part.substring(part.indexOf("=") + 1).replace("\"", "");
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Create movie based on type
+            Movie movie = null;
+
+            switch (movieType) {
+                case "newRelease":
+                    Date releaseDate = new Date(); // Default to current date
+                    if (releaseDateStr != null && !releaseDateStr.trim().isEmpty()) {
+                        try {
+                            releaseDate = new SimpleDateFormat("yyyy-MM-dd").parse(releaseDateStr);
+                        } catch (ParseException e) {
+                            // Use default date if parsing fails
+                        }
+                    }
+
+                    NewRelease newRelease = movieManager.addNewRelease(
+                            title, director, genre, releaseYear, rating,
+                            coverPhotoStream, originalFileName);
+
+                    newRelease.setReleaseDate(releaseDate);
+                    movieManager.updateMovie(newRelease);
+                    movie = newRelease;
+                    break;
+
+                case "classic":
+                    boolean hasAwards = "on".equals(hasAwardsStr) || "true".equals(hasAwardsStr);
+                    movie = movieManager.addClassicMovie(
+                            title, director, genre, releaseYear, rating,
+                            significance != null ? significance : "", hasAwards,
+                            coverPhotoStream, originalFileName);
+                    break;
+
+                default: // Regular movie
+                    movie = movieManager.addRegularMovie(
+                            title, director, genre, releaseYear, rating,
+                            coverPhotoStream, originalFileName);
+                    break;
+            }
+
+            // Close the input stream if it was opened
+            if (coverPhotoStream != null) {
+                coverPhotoStream.close();
+            }
+
+            // Set success message
+            session.setAttribute("successMessage", "Movie added successfully: " + movie.getTitle());
+
+            // Redirect to movie list
+            response.sendRedirect(request.getContextPath() + "/admin/movies");
+
+        } catch (NumberFormatException e) {
+            session.setAttribute("errorMessage", "Invalid number format. Please check your input.");
+            response.sendRedirect(request.getContextPath() + "/admin/movies?action=add");
+        }
+    }
+
+    /**
+     * Process edit movie form
+     */
+    private void processEditMovie(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+
+        // Get form parameters
+        String movieId = request.getParameter("movieId");
+        String title = request.getParameter("title");
+        String director = request.getParameter("director");
+        String genre = request.getParameter("genre");
+        String releaseYearStr = request.getParameter("releaseYear");
+        String ratingStr = request.getParameter("rating");
+        String availableStr = request.getParameter("available");
+        String movieType = request.getParameter("movieType");
+
+        // Additional parameters for specific movie types
+        String releaseDateStr = request.getParameter("releaseDate");
+        String significance = request.getParameter("significance");
+        String hasAwardsStr = request.getParameter("hasAwards");
+
+        // Get the cover photo file part
+        Part coverPhotoPart = null;
+        try {
+            coverPhotoPart = request.getPart("coverPhoto");
+        } catch (Exception e) {
+            // Part not found or not a multipart request
+            getServletContext().log("Error getting coverPhoto part: " + e.getMessage());
+        }
+
+        // Validate required fields
+        if (movieId == null || title == null || director == null || genre == null ||
+                releaseYearStr == null || ratingStr == null ||
+                movieId.trim().isEmpty() || title.trim().isEmpty() ||
+                director.trim().isEmpty() || genre.trim().isEmpty() ||
+                releaseYearStr.trim().isEmpty() || ratingStr.trim().isEmpty()) {
+
+            session.setAttribute("errorMessage", "All fields are required");
+            response.sendRedirect(request.getContextPath() + "/admin/movies?action=edit&id=" + movieId);
+            return;
+        }
+
+        try {
+            // Parse numeric values
+            int releaseYear = Integer.parseInt(releaseYearStr);
+            double rating = Double.parseDouble(ratingStr);
+            boolean available = "on".equals(availableStr) || "true".equals(availableStr);
+
+            // Validate rating range (0-10)
+            if (rating < 0 || rating > 10) {
+                session.setAttribute("errorMessage", "Rating must be between 0 and 10");
+                response.sendRedirect(request.getContextPath() + "/admin/movies?action=edit&id=" + movieId);
+                return;
+            }
+
+            // Create MovieManager
+            MovieManager movieManager = new MovieManager(getServletContext());
+
+            // Get existing movie
+            Movie existingMovie = movieManager.getMovieById(movieId);
+
+            if (existingMovie == null) {
+                session.setAttribute("errorMessage", "Movie not found");
+                response.sendRedirect(request.getContextPath() + "/admin/movies");
+                return;
+            }
+
+            // Get cover photo input stream and file name if available
+            InputStream coverPhotoStream = null;
+            String originalFileName = null;
+
+            if (coverPhotoPart != null && coverPhotoPart.getSize() > 0) {
+                coverPhotoStream = coverPhotoPart.getInputStream();
+                String contentDisposition = coverPhotoPart.getHeader("content-disposition");
+                if (contentDisposition != null) {
+                    // Extract file name from content-disposition header
+                    for (String part : contentDisposition.split(";")) {
+                        part = part.trim();
+                        if (part.startsWith("filename=")) {
+                            originalFileName = part.substring(part.indexOf("=") + 1).replace("\"", "");
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Create updated movie based on type
+            Movie updatedMovie = null;
+
+            switch (movieType) {
+                case "newRelease":
+                    NewRelease newRelease;
+
+                    // Check if the existing movie is already a NewRelease
+                    if (existingMovie instanceof NewRelease) {
+                        newRelease = (NewRelease) existingMovie;
+                    } else {
+                        newRelease = new NewRelease();
+                        newRelease.setMovieId(movieId);
+                    }
+
+                    // Update basic properties
+                    newRelease.setTitle(title);
+                    newRelease.setDirector(director);
+                    newRelease.setGenre(genre);
+                    newRelease.setReleaseYear(releaseYear);
+                    newRelease.setRating(rating);
+                    newRelease.setAvailable(available);
+
+                    // Update release date if provided
+                    if (releaseDateStr != null && !releaseDateStr.trim().isEmpty()) {
+                        try {
+                            Date releaseDate = new SimpleDateFormat("yyyy-MM-dd").parse(releaseDateStr);
+                            newRelease.setReleaseDate(releaseDate);
+                        } catch (ParseException e) {
+                            // Keep existing date if parsing fails
+                        }
+                    }
+
+                    updatedMovie = newRelease;
+                    break;
+
+                case "classic":
+                    ClassicMovie classicMovie;
+
+                    // Check if the existing movie is already a ClassicMovie
+                    if (existingMovie instanceof ClassicMovie) {
+                        classicMovie = (ClassicMovie) existingMovie;
+                    } else {
+                        classicMovie = new ClassicMovie();
+                        classicMovie.setMovieId(movieId);
+                    }
+
+                    // Update basic properties
+                    classicMovie.setTitle(title);
+                    classicMovie.setDirector(director);
+                    classicMovie.setGenre(genre);
+                    classicMovie.setReleaseYear(releaseYear);
+                    classicMovie.setRating(rating);
+                    classicMovie.setAvailable(available);
+
+                    // Update classic-specific properties
+                    classicMovie.setSignificance(significance != null ? significance : "");
+                    classicMovie.setHasAwards("on".equals(hasAwardsStr) || "true".equals(hasAwardsStr));
+
+                    updatedMovie = classicMovie;
+                    break;
+
+                default: // Regular movie
+                    Movie regularMovie = new Movie();
+                    regularMovie.setMovieId(movieId);
+                    regularMovie.setTitle(title);
+                    regularMovie.setDirector(director);
+                    regularMovie.setGenre(genre);
+                    regularMovie.setReleaseYear(releaseYear);
+                    regularMovie.setRating(rating);
+                    regularMovie.setAvailable(available);
+
+                    updatedMovie = regularMovie;
+                    break;
+            }
+
+            // Update movie in database with the cover photo if provided
+            boolean success = movieManager.updateMovie(updatedMovie, coverPhotoStream, originalFileName);
+
+            // Close the input stream if it was opened
+            if (coverPhotoStream != null) {
+                coverPhotoStream.close();
+            }
+
+            if (success) {
+                // Set success message
+                session.setAttribute("successMessage", "Movie updated successfully: " + updatedMovie.getTitle());
+
+                // Redirect to movie list
+                response.sendRedirect(request.getContextPath() + "/admin/movies");
+            } else {
+                session.setAttribute("errorMessage", "Failed to update movie");
+                response.sendRedirect(request.getContextPath() + "/admin/movies?action=edit&id=" + movieId);
+            }
+
+        } catch (NumberFormatException e) {
+            session.setAttribute("errorMessage", "Invalid number format. Please check your input.");
+            response.sendRedirect(request.getContextPath() + "/admin/movies?action=edit&id=" + movieId);
+        }
+    }
+}

@@ -1,0 +1,339 @@
+/* ------------------------------
+color , font and variables setup
+---------------------------------*/
+:root {
+  --c-primary: #060606;
+  --c-secondary: #ffffff;
+  --c-third: #6b207e;
+  --c-accent: #9B5DE5;
+  --c-gray: #bbb;
+  --c-dark-gray: #333;
+  --c-light-gray: #f8f9fa;
+  --c-bg-dark: #121212;
+  --c-card-dark: #1e1e1e;
+  --c-error: #dc3545;
+  --c-success: #28a745;
+
+  --font-base: "Poppins", sans-serif;
+}
+
+body {
+  font-family: var(--font-base);
+  font-size: 16px;
+  line-height: 1.6;
+  background-color: var(--c-bg-dark);
+  color: var(--c-secondary);
+}
+
+a {
+  text-decoration: none;
+  color: var(--c-accent);
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  color: var(--c-secondary);
+}
+
+.section-padding {
+  padding-top: 120px;
+  padding-bottom: 120px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ------------------------------
+button setup
+---------------------------------*/
+.btn-primary {
+  background-color: var(--c-third) !important;
+  border-color: var(--c-third) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--c-accent) !important;
+  border-color: var(--c-accent) !important;
+}
+
+.rounded-btn {
+  border-radius: 30px;
+}
+
+.btn-outline-primary {
+  color: var(--c-third);
+  border-color: var(--c-third);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--c-third);
+  color: var(--c-secondary);
+}
+
+/* ------------------------------
+nav bar setup
+---------------------------------*/
+.navbar {
+  font-family: var(--font-base);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.navbar-dark {
+  background-color: var(--c-primary);
+}
+
+.bg-black {
+  background-color: black !important;
+}
+
+/* Centered & Long Search Bar */
+.search-container {
+  flex-grow: 1;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 500px;
+  background-color: var(--c-dark-gray);
+  border: 1px solid var(--c-gray);
+  color: var(--c-secondary);
+}
+
+.search-input:focus {
+  background-color: var(--c-dark-gray);
+  color: var(--c-secondary);
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 0.25rem rgba(155, 93, 229, 0.25);
+}
+
+/* Custom Search Button Color */
+.custom-search-btn {
+  background-color: var(--c-third) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.custom-search-btn:hover {
+  background-color: var(--c-accent) !important;
+}
+
+/* ------------------------------
+hero css setup
+---------------------------------*/
+.hero-section {
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, .7);
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+}
+
+.hero-subtitle {
+  color: var(--c-gray);
+  text-transform: uppercase;
+}
+
+.hero-title {
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+  font-weight: bold;
+}
+
+.hero-title-highlight {
+  color: var(--c-accent);
+}
+
+.hero-description {
+  color: var(--c-gray);
+}
+
+.hero-btn {
+  border-radius: 30px;
+  background-color: var(--c-third);
+  padding: 12px 30px;
+  transition: all 0.3s ease;
+}
+
+.hero-btn:hover {
+  background-color: var(--c-accent);
+  color: white !important;
+}
+
+/* ------------------------------
+form styles
+---------------------------------*/
+.auth-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 30px;
+  background-color: var(--c-card-dark);
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-title {
+  color: var(--c-secondary);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.auth-subtitle {
+  color: var(--c-gray);
+  font-size: 1rem;
+}
+
+.form-control {
+  background-color: var(--c-dark-gray);
+  border: 1px solid var(--c-gray);
+  color: var(--c-secondary);
+}
+
+.form-control:focus {
+  background-color: var(--c-dark-gray);
+  color: var(--c-secondary);
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 0.25rem rgba(155, 93, 229, 0.25);
+}
+
+.form-label {
+  color: var(--c-secondary);
+  font-weight: 500;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 20px;
+  color: var(--c-gray);
+}
+
+.auth-link {
+  color: var(--c-accent);
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  color: var(--c-secondary);
+  text-decoration: underline;
+}
+
+/* ------------------------------
+alert styles
+---------------------------------*/
+.alert-success {
+  background-color: rgba(40, 167, 69, 0.2);
+  border-color: var(--c-success);
+  color: var(--c-success);
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.2);
+  border-color: var(--c-error);
+  color: var(--c-error);
+}
+
+/* ------------------------------
+movie card styles
+---------------------------------*/
+.movie-card {
+  background-color: var(--c-card-dark);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  height: 100%;
+}
+
+.movie-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.movie-poster {
+  height: 300px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.movie-card-body {
+  padding: 15px;
+}
+
+.movie-title {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: var(--c-secondary);
+}
+
+.movie-info {
+  color: var(--c-gray);
+  font-size: 0.9rem;
+}
+
+.movie-rating {
+  color: gold;
+  margin-bottom: 10px;
+}
+
+.movie-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+/* ------------------------------
+profile styles
+---------------------------------*/
+.profile-container {
+  background-color: var(--c-card-dark);
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.profile-header {
+  margin-bottom: 30px;
+  border-bottom: 1px solid var(--c-dark-gray);
+  padding-bottom: 20px;
+}
+
+.profile-title {
+  color: var(--c-secondary);
+  font-weight: 600;
+}
+
+.profile-section {
+  margin-bottom: 30px;
+}
+
+.profile-section-title {
+  color: var(--c-accent);
+  font-weight: 500;
+  margin-bottom: 15px;
+}
+
+/* ------------------------------
+Font Import
+---------------------------------*/
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
