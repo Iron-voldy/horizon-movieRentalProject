@@ -6,14 +6,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cancel Rental - FilmHorizon</title>
+  <title>Return Movie - FilmHorizon</title>
   <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/style.css">
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
-    .cancel-container {
+    .return-container {
       background-color: var(--c-card-dark);
       border-radius: 10px;
       padding: 30px;
@@ -28,54 +28,43 @@
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
     }
-    .cancel-card {
+    .return-card {
       background-color: rgba(0, 0, 0, 0.2);
       border-radius: 10px;
       padding: 20px;
-      border: 1px solid #333;
     }
     .rental-info {
       display: flex;
       justify-content: space-between;
       margin-bottom: 8px;
     }
-    .reason-group {
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 10px;
-      background-color: rgba(0, 0, 0, 0.2);
-    }
-    .reason-option {
-      background-color: var(--c-card-dark);
-      border: 1px solid #333;
+    .overdue-badge {
+      background-color: rgba(220, 53, 69, 0.2);
+      color: #dc3545;
+      border: 1px solid #dc3545;
+      padding: 5px 10px;
       border-radius: 5px;
-      padding: 10px 15px;
-      margin-bottom: 10px;
-      cursor: pointer;
-      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
     }
-    .reason-option:hover {
-      border-color: var(--c-accent);
-    }
-    .reason-option.selected {
-      border-color: var(--c-accent);
-      background-color: rgba(155, 93, 229, 0.1);
-    }
-    .warning-box {
+    .overdue-details {
       background-color: rgba(220, 53, 69, 0.1);
       border: 1px solid rgba(220, 53, 69, 0.2);
       border-radius: 10px;
       padding: 15px;
       margin-top: 20px;
     }
-    /* Remove spin buttons from number input */
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
+    .latefee-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
     }
-    input[type=number] {
-      -moz-appearance: textfield;
+    .latefee-row.total {
+      border-top: 1px solid var(--c-dark-gray);
+      padding-top: 10px;
+      margin-top: 10px;
+      font-weight: 700;
     }
   </style>
 </head>
@@ -145,18 +134,25 @@
 
   <!-- Main Content Start -->
   <div class="container">
-    <div class="cancel-container">
-      <h2 class="mb-4">Cancel Rental</h2>
+    <div class="return-container">
+      <h2 class="mb-4">Return Movie</h2>
 
       <div class="row">
         <div class="col-lg-8">
-          <div class="cancel-card mb-4">
+          <div class="return-card mb-4">
             <div class="row">
               <div class="col-md-3 text-center mb-3 mb-md-0">
                 <img src="${pageContext.request.contextPath}/image-servlet?movieId=${transaction.movieId}" class="movie-thumb" alt="Movie Poster">
               </div>
               <div class="col-md-9">
-                <h4 class="movie-title">${movie.title}</h4>
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h4 class="movie-title mb-0">${movie.title}</h4>
+                  <c:if test="${transaction.isOverdue()}">
+                    <span class="overdue-badge">
+                      <i class="fas fa-exclamation-circle me-1"></i> Overdue
+                    </span>
+                  </c:if>
+                </div>
                 <p class="text-muted">${movie.director} | ${movie.releaseYear} | ${movie.genre}</p>
 
                 <div class="rental-info">
@@ -175,86 +171,57 @@
                   <span>Rental Fee:</span>
                   <span>$${transaction.rentalFee}</span>
                 </div>
+
+                <c:if test="${transaction.isOverdue()}">
+                  <div class="overdue-details mt-3">
+                    <h5><i class="fas fa-exclamation-circle me-2 text-danger"></i> Late Return</h5>
+                    <p>This movie is overdue by <strong>${transaction.calculateDaysOverdue()} days</strong>.</p>
+
+                    <div class="latefee-row">
+                      <span>Late fee (per day):</span>
+                      <c:choose>
+                        <c:when test="${sessionScope.user.class.simpleName eq 'PremiumUser'}">
+                          <span>$0.75</span>
+                        </c:when>
+                        <c:otherwise>
+                          <span>$1.50</span>
+                        </c:otherwise>
+                      </c:choose>
+                    </div>
+                    <div class="latefee-row">
+                      <span>Days overdue:</span>
+                      <span>${transaction.calculateDaysOverdue()}</span>
+                    </div>
+                    <div class="latefee-row total">
+                      <span>Estimated late fee:</span>
+                      <c:choose>
+                        <c:when test="${sessionScope.user.class.simpleName eq 'PremiumUser'}">
+                          <span>$${0.75 * transaction.calculateDaysOverdue()}</span>
+                        </c:when>
+                        <c:otherwise>
+                          <span>$${1.50 * transaction.calculateDaysOverdue()}</span>
+                        </c:otherwise>
+                      </c:choose>
+                    </div>
+                  </div>
+                </c:if>
               </div>
             </div>
           </div>
 
-          <div class="warning-box mb-4">
-            <h5 class="text-danger mb-2"><i class="fas fa-exclamation-triangle me-2"></i> Cancellation Warning</h5>
-            <p class="mb-1">Please note the following before proceeding:</p>
-            <ul class="mb-0">
-              <li>Once canceled, you will lose access to this movie immediately.</li>
-              <li>Cancellations cannot be undone.</li>
-              <li>You will need to rent the movie again if you wish to watch it.</li>
-            </ul>
-          </div>
+          <h5>Return Confirmation</h5>
+          <p>Are you sure you want to return this movie? This action cannot be undone.</p>
 
-          <form action="${pageContext.request.contextPath}/cancel-rental" method="post">
+          <form action="${pageContext.request.contextPath}/return-movie" method="post">
             <input type="hidden" name="transactionId" value="${transaction.transactionId}">
-            <input type="hidden" name="confirmCancel" value="yes">
-
-            <div class="reason-group">
-              <h5 class="mb-3">Why are you canceling?</h5>
-
-              <div class="reason-option" onclick="selectReason(this, 'Changed my mind')">
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="reasonOption" id="reason1" value="Changed my mind">
-                  <label class="form-check-label" for="reason1">
-                    Changed my mind
-                  </label>
-                </div>
-              </div>
-
-              <div class="reason-option" onclick="selectReason(this, 'Technical issues')">
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="reasonOption" id="reason2" value="Technical issues">
-                  <label class="form-check-label" for="reason2">
-                    Technical issues
-                  </label>
-                </div>
-              </div>
-
-              <div class="reason-option" onclick="selectReason(this, 'Rented by mistake')">
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="reasonOption" id="reason3" value="Rented by mistake">
-                  <label class="form-check-label" for="reason3">
-                    Rented by mistake
-                  </label>
-                </div>
-              </div>
-
-              <div class="reason-option" onclick="selectReason(this, 'No time to watch')">
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="reasonOption" id="reason4" value="No time to watch">
-                  <label class="form-check-label" for="reason4">
-                    No time to watch
-                  </label>
-                </div>
-              </div>
-
-              <div class="reason-option" onclick="selectReason(this, 'Other reason')">
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="reasonOption" id="reason5" value="Other reason">
-                  <label class="form-check-label" for="reason5">
-                    Other reason
-                  </label>
-                </div>
-              </div>
-
-              <div class="mt-3" id="otherReasonDiv" style="display:none;">
-                <label for="otherReason" class="form-label">Please specify:</label>
-                <textarea id="otherReason" name="otherReason" class="form-control" rows="3"></textarea>
-              </div>
-
-              <input type="hidden" name="reason" id="reasonInput" value="">
-            </div>
+            <input type="hidden" name="confirmReturn" value="yes">
 
             <div class="d-flex mt-4">
               <a href="${pageContext.request.contextPath}/rental-history" class="btn btn-outline-light me-3">
-                <i class="fas fa-arrow-left me-2"></i> Back
+                <i class="fas fa-arrow-left me-2"></i> Cancel
               </a>
-              <button type="submit" id="cancelButton" class="btn btn-danger" disabled>
-                <i class="fas fa-times-circle me-2"></i> Cancel Rental
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-check-circle me-2"></i> Confirm Return
               </button>
             </div>
           </form>
@@ -263,23 +230,31 @@
         <div class="col-lg-4 mt-4 mt-lg-0">
           <div class="card bg-dark border-dark">
             <div class="card-header bg-black">
-              <h5 class="mb-0">Cancellation Policy</h5>
+              <h5 class="mb-0">Return Policy</h5>
             </div>
             <div class="card-body">
               <ul class="list-group list-group-flush bg-transparent">
                 <li class="list-group-item bg-transparent text-light border-dark">
-                  <i class="fas fa-info-circle text-info me-2"></i> You can cancel a rental within 24 hours of the rental date
+                  <i class="fas fa-info-circle text-info me-2"></i> Once returned, you will no longer have access to the movie
                 </li>
                 <li class="list-group-item bg-transparent text-light border-dark">
-                  <i class="fas fa-info-circle text-info me-2"></i> Cancellations after 24 hours may be subject to our review
+                  <i class="fas fa-info-circle text-info me-2"></i> Late fees are automatically calculated based on the due date
                 </li>
                 <li class="list-group-item bg-transparent text-light border-dark">
-                  <i class="fas fa-info-circle text-info me-2"></i> Premium members get priority for cancellation requests
+                  <i class="fas fa-info-circle text-info me-2"></i> Premium members enjoy reduced late fees
                 </li>
                 <li class="list-group-item bg-transparent text-light border-dark">
-                  <i class="fas fa-info-circle text-info me-2"></i> You will need to rent the movie again after cancellation
+                  <i class="fas fa-info-circle text-info me-2"></i> You can always rent the movie again after returning
                 </li>
+                <c:if test="${not transaction.isOverdue()}">
+                  <li class="list-group-item bg-transparent text-light border-dark">
+                    <i class="fas fa-star text-warning me-2"></i> You're returning on time - thanks for being a great customer!
+                  </li>
+                </c:if>
               </ul>
+            </div>
+            <div class="card-footer bg-black border-dark">
+              <p class="mb-0 small text-muted">Please ensure you've finished watching the movie before returning.</p>
             </div>
           </div>
 
@@ -288,7 +263,7 @@
               <h5 class="mb-0">Need Help?</h5>
             </div>
             <div class="card-body">
-              <p class="card-text">If you have any issues with your rental or cancellation, please contact our customer support.</p>
+              <p class="card-text">If you have any questions about your rental or return, please contact our customer support.</p>
               <a href="#" class="btn btn-outline-light">
                 <i class="fas fa-headset me-2"></i> Contact Support
               </a>
@@ -337,45 +312,5 @@
 
   <!-- Bootstrap JavaScript Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Custom JS for reason selection -->
-  <script>
-    function selectReason(element, reason) {
-      // Remove 'selected' class from all options
-      document.querySelectorAll('.reason-option').forEach(option => {
-        option.classList.remove('selected');
-      });
-
-      // Add 'selected' class to clicked option
-      element.classList.add('selected');
-
-      // Check the radio button
-      element.querySelector('input[type="radio"]').checked = true;
-
-      // Show/hide other reason textarea
-      const otherReasonDiv = document.getElementById('otherReasonDiv');
-      if (reason === 'Other reason') {
-        otherReasonDiv.style.display = 'block';
-        document.getElementById('reasonInput').value = '';
-        document.getElementById('otherReason').focus();
-      } else {
-        otherReasonDiv.style.display = 'none';
-        document.getElementById('reasonInput').value = reason;
-      }
-
-      // Enable the cancel button
-      document.getElementById('cancelButton').disabled = false;
-    }
-
-    // Update reason input when "Other reason" textarea changes
-    document.addEventListener('DOMContentLoaded', function() {
-      const otherReasonTextarea = document.getElementById('otherReason');
-      otherReasonTextarea.addEventListener('input', function() {
-        document.getElementById('reasonInput').value = this.value;
-        // Disable button if other reason is empty
-        document.getElementById('cancelButton').disabled = (this.value.trim() === '');
-      });
-    });
-  </script>
 </body>
 </html>
