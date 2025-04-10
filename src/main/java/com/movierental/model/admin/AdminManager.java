@@ -68,7 +68,7 @@ public class AdminManager {
         admin.setAdminId(UUID.randomUUID().toString());
         admin.setUsername("admin");
         admin.setPassword("admin123");
-        admin.setEmail("admin@filmflux.com");
+        admin.setEmail("admin@horizon.com");
         admin.setFullName("System Administrator");
         admin.setRole("SUPER_ADMIN");
 

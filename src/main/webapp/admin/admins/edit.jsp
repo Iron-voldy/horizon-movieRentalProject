@@ -1,250 +1,230 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Admin | Horizon Movie Rental</title>
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <!-- Custom Admin CSS -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin-styles.css">
+<jsp:include page="../includes/header.jsp">
+    <jsp:param name="pageTitle" value="Edit Admin" />
+    <jsp:param name="activePage" value="admins" />
+</jsp:include>
 
-    <style>
-        .password-requirements {
-            font-size: 0.85rem;
-            color: #6c757d;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            margin-top: 10px;
-            border-left: 3px solid #20c997;
-        }
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/admin/dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/admin/manage-admins">Admin Management</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit Admin</li>
+        </ol>
+    </nav>
 
-        .form-group label.required::after {
-            content: " *";
-            color: red;
-        }
+    <h1 class="page-title">
+        <i class="fas fa-user-edit me-2"></i> Edit Admin: ${editAdmin.username}
+    </h1>
 
-        .card-form {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .admin-profile-summary {
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-left: 4px solid #007bff;
-        }
-
-        .admin-profile-summary .role-badge {
-            font-size: 0.9rem;
-            padding: 5px 10px;
-            border-radius: 15px;
-        }
-
-        .badge-super-admin {
-            background-color: #6f42c1;
-            color: white;
-        }
-
-        .badge-admin {
-            background-color: #20c997;
-            color: white;
-        }
-    </style>
-</head>
-<body>
-    <!-- Include Admin Navbar -->
-    <jsp:include page="/admin/admin-navbar.jsp" />
-
-    <div class="container-fluid mt-4">
-        <div class="row">
-            <!-- Sidebar -->
-            <jsp:include page="/admin/admin-sidebar.jsp" />
-
-            <!-- Main Content -->
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/admin/dashboard">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/admin/manage-admins">Admin Management</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Edit Admin</li>
-                    </ol>
-                </nav>
-
-                <h2><i class="fas fa-user-edit"></i> Edit Admin</h2>
-
-                <!-- Alert Messages -->
-                <c:if test="${not empty errorMessage}">
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        ${errorMessage}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                </c:if>
-
-                <!-- Admin Profile Summary -->
-                <div class="admin-profile-summary">
-                    <div class="row">
-                        <div class="col-md-1 text-center">
-                            <i class="fas fa-user-circle fa-3x text-primary"></i>
-                        </div>
-                        <div class="col-md-11">
-                            <h5>${editAdmin.fullName}
-                                <c:choose>
-                                    <c:when test="${editAdmin.role eq 'SUPER_ADMIN'}">
-                                        <span class="badge badge-super-admin role-badge">Super Admin</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="badge badge-admin role-badge">Admin</span>
-                                    </c:otherwise>
-                                </c:choose>
-                            </h5>
-                            <p class="mb-0">
-                                <strong>Username:</strong> ${editAdmin.username} |
-                                <strong>Email:</strong> ${editAdmin.email}
-                            </p>
-                        </div>
-                    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Admin Information</h5>
                 </div>
+                <div class="card-body">
+                    <form action="${pageContext.request.contextPath}/admin/manage-admins" method="post" class="needs-validation" novalidate>
+                        <input type="hidden" name="action" value="edit">
+                        <input type="hidden" name="adminId" value="${editAdmin.adminId}">
 
-                <!-- Edit Admin Form -->
-                <div class="card shadow card-form">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="fas fa-user-cog"></i> Edit Admin Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <form action="${pageContext.request.contextPath}/admin/manage-admins" method="post" id="editAdminForm" onsubmit="return validateForm()">
-                            <input type="hidden" name="action" value="edit">
-                            <input type="hidden" name="adminId" value="${editAdmin.adminId}">
+                        <c:if test="${editAdmin.adminId eq sessionScope.adminId}">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                You are editing your own account. Changes will affect your current session.
+                            </div>
+                        </c:if>
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="username" class="required">Username</label>
-                                        <input type="text" class="form-control" id="username" name="username" required
-                                               value="${editAdmin.username}" pattern="[a-zA-Z0-9_]{3,20}"
-                                               title="Username must be 3-20 characters using only letters, numbers, and underscores">
-                                        <small class="form-text text-muted">3-20 characters, letters, numbers, and underscores only.</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="fullName" class="required">Full Name</label>
-                                        <input type="text" class="form-control" id="fullName" name="fullName" required
-                                               value="${editAdmin.fullName}">
-                                    </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="username" name="username"
+                                           value="${editAdmin.username}" required>
+                                    <div class="invalid-feedback">Please enter a username.</div>
                                 </div>
                             </div>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="email" class="required">Email Address</label>
-                                        <input type="email" class="form-control" id="email" name="email" required
-                                               value="${editAdmin.email}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="role" class="required">Role</label>
-                                        <select class="form-control" id="role" name="role" required
-                                                <c:if test="${editAdmin.adminId eq sessionScope.adminId && editAdmin.role eq 'SUPER_ADMIN'}">disabled</c:if>>
-                                            <option value="ADMIN" <c:if test="${editAdmin.role eq 'ADMIN'}">selected</c:if>>Admin</option>
-                                            <option value="SUPER_ADMIN" <c:if test="${editAdmin.role eq 'SUPER_ADMIN'}">selected</c:if>>Super Admin</option>
-                                        </select>
-                                        <c:if test="${editAdmin.adminId eq sessionScope.adminId && editAdmin.role eq 'SUPER_ADMIN'}">
-                                            <small class="form-text text-warning">You cannot demote yourself from Super Admin.</small>
-                                            <input type="hidden" name="role" value="SUPER_ADMIN">
-                                        </c:if>
-                                        <c:if test="${editAdmin.adminId ne sessionScope.adminId}">
-                                            <small class="form-text text-muted">
-                                                Super Admins can manage other admins, while regular Admins cannot.
-                                            </small>
-                                        </c:if>
-                                    </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           value="${editAdmin.email}" required>
+                                    <div class="invalid-feedback">Please enter a valid email address.</div>
                                 </div>
                             </div>
+                        </div>
 
-                            <hr class="my-4">
-                            <h5><i class="fas fa-key"></i> Change Password (Optional)</h5>
-                            <p class="text-muted">Leave blank to keep the current password.</p>
+                        <div class="form-group mb-3">
+                            <label for="fullName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="fullName" name="fullName"
+                                   value="${editAdmin.fullName}" required>
+                            <div class="invalid-feedback">Please enter the full name.</div>
+                        </div>
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="newPassword">New Password</label>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="newPassword" class="form-label">New Password</label>
+                                    <div class="input-group">
                                         <input type="password" class="form-control" id="newPassword" name="newPassword">
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleNewPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
                                     </div>
+                                    <div class="form-text">Leave blank to keep current password.</div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="confirmPassword">Confirm New Password</label>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                    <div class="input-group">
                                         <input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
                                     </div>
+                                    <div class="invalid-feedback">Passwords do not match.</div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="password-requirements">
-                                <p class="mb-2"><strong>Password Requirements:</strong></p>
-                                <ul class="mb-0">
-                                    <li>Minimum 8 characters in length</li>
-                                    <li>Contains at least one uppercase letter</li>
-                                    <li>Contains at least one lowercase letter</li>
-                                    <li>Contains at least one number</li>
-                                </ul>
+                        <div class="form-group mb-3">
+                            <label class="form-label">Admin Role <span class="text-danger">*</span></label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="role" id="roleAdmin" value="ADMIN"
+                                       ${editAdmin.role eq 'ADMIN' ? 'checked' : ''}
+                                       ${editAdmin.adminId eq sessionScope.adminId && editAdmin.role eq 'SUPER_ADMIN' ? 'disabled' : ''}>
+                                <label class="form-check-label" for="roleAdmin">
+                                    Regular Admin
+                                </label>
+                                <div class="form-text">Can manage movies, users, and rentals.</div>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="role" id="roleSuperAdmin" value="SUPER_ADMIN"
+                                       ${editAdmin.role eq 'SUPER_ADMIN' ? 'checked' : ''}>
+                                <label class="form-check-label" for="roleSuperAdmin">
+                                    Super Admin
+                                </label>
+                                <div class="form-text">Can manage everything including other admin accounts.</div>
                             </div>
 
-                            <div class="form-group mt-4 text-right">
-                                <a href="${pageContext.request.contextPath}/admin/manage-admins" class="btn btn-secondary">
-                                    <i class="fas fa-times"></i> Cancel
-                                </a>
+                            <c:if test="${editAdmin.adminId eq sessionScope.adminId && editAdmin.role eq 'SUPER_ADMIN'}">
+                                <div class="form-text text-danger">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    You cannot demote yourself from Super Admin.
+                                </div>
+                                <!-- Add a hidden field to ensure the role stays SUPER_ADMIN -->
+                                <input type="hidden" name="role" value="SUPER_ADMIN">
+                            </c:if>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="${pageContext.request.contextPath}/admin/manage-admins" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Cancel
+                            </a>
+                            <div>
+                                <c:if test="${editAdmin.adminId ne sessionScope.adminId}">
+                                    <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteAdminModal">
+                                        <i class="fas fa-trash-alt me-1"></i> Delete
+                                    </button>
+                                </c:if>
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Save Changes
+                                    <i class="fas fa-save me-1"></i> Save Changes
                                 </button>
                             </div>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
-            </main>
+            </div>
         </div>
     </div>
+</div>
 
-    <!-- jQuery and Bootstrap Bundle (includes Popper) -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<c:if test="${editAdmin.adminId ne sessionScope.adminId}">
+    <!-- Delete Admin Modal -->
+    <div class="modal fade" id="deleteAdminModal" tabindex="-1" aria-labelledby="deleteAdminModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="deleteAdminModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the admin "<strong>${editAdmin.username}</strong>"?</p>
+                    <p class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i> This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a href="${pageContext.request.contextPath}/admin/manage-admins?action=delete&id=${editAdmin.adminId}"
+                       class="btn btn-danger">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</c:if>
 
-    <script>
-        // Validate the form before submission
-        function validateForm() {
-            var newPassword = document.getElementById("newPassword").value;
-            var confirmPassword = document.getElementById("confirmPassword").value;
+<script>
+    // Password visibility toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleNewPassword = document.getElementById('toggleNewPassword');
+        const newPassword = document.getElementById('newPassword');
 
-            // If changing password, check if they match
-            if (newPassword !== "" || confirmPassword !== "") {
-                if (newPassword !== confirmPassword) {
-                    alert("New passwords do not match!");
-                    return false;
-                }
+        toggleNewPassword.addEventListener('click', function() {
+            const type = newPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            newPassword.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
 
-                // Password validation
-                var passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-                if (!passwordRegex.test(newPassword)) {
-                    alert("New password does not meet the requirements!");
-                    return false;
+        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+        const confirmPassword = document.getElementById('confirmPassword');
+
+        toggleConfirmPassword.addEventListener('click', function() {
+            const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPassword.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+
+        // Form validation
+        const form = document.querySelector('.needs-validation');
+
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            const newPassword = document.getElementById('newPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+
+            // Only validate passwords if new password field is not empty
+            if (newPassword.value) {
+                if (newPassword.value !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity('Passwords do not match');
+                    event.preventDefault();
+                    event.stopPropagation();
+                } else {
+                    confirmPassword.setCustomValidity('');
                 }
             }
 
-            return true;
+            form.classList.add('was-validated');
+        });
+
+        // Clear custom validity on input
+        if (confirmPassword) {
+            confirmPassword.addEventListener('input', function() {
+                if (newPassword.value === confirmPassword.value) {
+                    confirmPassword.setCustomValidity('');
+                } else {
+                    confirmPassword.setCustomValidity('Passwords do not match');
+                }
+            });
         }
-    </script>
-</body>
-</html>
+    });
+</script>
+
+<jsp:include page="../includes/footer.jsp" />
