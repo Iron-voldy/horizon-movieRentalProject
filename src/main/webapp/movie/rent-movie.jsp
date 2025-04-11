@@ -12,6 +12,33 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <!-- Font Awesome icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .rent-container {
+      background-color: var(--c-card-dark);
+      border-radius: 10px;
+      padding: 30px;
+      margin-top: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    .movie-poster-lg {
+      max-height: 350px;
+      width: auto;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    }
+    .special-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: var(--c-third);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+  </style>
 </head>
 <body>
   <!-- Navbar Start -->
@@ -26,250 +53,302 @@
       </button>
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mx-auto">
+        <div class="search-container mx-auto">
+          <form class="d-flex" action="${pageContext.request.contextPath}/search-movie" method="get">
+            <input class="form-control search-input me-2" type="search" name="searchQuery" placeholder="Search movies..." aria-label="Search">
+            <button class="btn custom-search-btn" type="submit">
+              <i class="fas fa-search"></i>
+            </button>
+          </form>
+        </div>
+
+        <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/index.jsp">Home</a>
+            <a class="nav-link" href="${pageContext.request.contextPath}/">Home</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/search-movie">Movies</a>
           </li>
-          <c:if test="${not empty sessionScope.userId}">
-            <li class="nav-item">
-              <a class="nav-link" href="${pageContext.request.contextPath}/view-watchlist">Watchlist</a>
-            </li>
-            <li class="nav-item active">
-              <a class="nav-link active" href="${pageContext.request.contextPath}/rental-history">Rentals</a>
+          <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/top-rated">Top Rated</a>
+          </li>
+
+          <!-- Check if user is logged in -->
+          <c:if test="${not empty sessionScope.user}">
+            <!-- User is logged in, show appropriate options -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                My Account
+              </a>
+              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/update-profile">Profile</a></li>
+                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/view-watchlist">Watchlist</a></li>
+                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/rental-history">Rentals</a></li>
+                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/user-reviews">My Reviews</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Logout</a></li>
+              </ul>
             </li>
           </c:if>
-        </ul>
-
-        <!-- User Profile -->
-        <ul class="navbar-nav">
-          <c:choose>
-            <c:when test="${empty sessionScope.userId}">
-              <li class="nav-item">
-                <a class="nav-link" href="${pageContext.request.contextPath}/login">
-                  <img src="${pageContext.request.contextPath}/img/brand/white-button-login.png" width="33" height="33" alt="Login">
-                </a>
-              </li>
-            </c:when>
-            <c:otherwise>
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  <span class="me-2">${sessionScope.username}</span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                  <li><a class="dropdown-item" href="${pageContext.request.contextPath}/update-profile">Profile</a></li>
-                  <li><a class="dropdown-item" href="${pageContext.request.contextPath}/user-reviews">My Reviews</a></li>
-                  <li><a class="dropdown-item" href="${pageContext.request.contextPath}/recently-watched">Recently Watched</a></li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Logout</a></li>
-                </ul>
-              </li>
-            </c:otherwise>
-          </c:choose>
+          <c:if test="${empty sessionScope.user}">
+            <!-- User is not logged in, show login button -->
+            <li class="nav-item">
+              <a class="nav-link" href="${pageContext.request.contextPath}/login">
+                <i class="fas fa-sign-in-alt"></i> Login
+              </a>
+            </li>
+          </c:if>
         </ul>
       </div>
     </nav>
   </div>
   <!-- Navbar End -->
 
-  <!-- Display error message if any -->
-  <c:if test="${not empty requestScope.errorMessage}">
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      ${requestScope.errorMessage}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  </c:if>
+  <!-- Main Content Start -->
+  <div class="container">
+    <!-- Alert Messages -->
+    <c:if test="${not empty errorMessage}">
+      <div class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
+        ${errorMessage}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </c:if>
 
-  <!-- Rent Movie Section -->
-  <div class="container my-5">
-    <div class="row">
-      <div class="col-lg-8 mx-auto">
-        <div class="card shadow">
-          <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Rent Movie: ${movie.title}</h4>
+    <div class="rent-container">
+      <div class="row">
+        <div class="col-lg-8">
+          <h2 class="mb-4">Rent Movie</h2>
+
+          <div class="row mb-4">
+            <div class="col-md-4 text-center mb-3 mb-md-0 position-relative">
+              <img src="${pageContext.request.contextPath}/image-servlet?movieId=${movie.movieId}" class="movie-poster-lg" alt="Movie Poster">
+              <c:if test="${movie.getClass().simpleName eq 'NewRelease'}">
+                <div class="special-badge">New Release</div>
+              </c:if>
+              <c:if test="${movie.getClass().simpleName eq 'ClassicMovie'}">
+                <div class="special-badge">Classic</div>
+              </c:if>
+            </div>
+            <div class="col-md-8">
+              <h3 class="movie-title">${movie.title}</h3>
+              <p class="text-muted">
+                <span class="me-3"><i class="fas fa-film me-1"></i> ${movie.director}</span>
+                <span class="me-3"><i class="fas fa-calendar me-1"></i> ${movie.releaseYear}</span>
+                <span><i class="fas fa-tag me-1"></i> ${movie.genre}</span>
+              </p>
+              <p class="movie-rating">
+                <c:forEach var="i" begin="1" end="5">
+                  <c:choose>
+                    <c:when test="${movie.rating >= i}">
+                      <i class="fas fa-star"></i>
+                    </c:when>
+                    <c:when test="${movie.rating >= i - 0.5}">
+                      <i class="fas fa-star-half-alt"></i>
+                    </c:when>
+                    <c:otherwise>
+                      <i class="far fa-star"></i>
+                    </c:otherwise>
+                  </c:choose>
+                </c:forEach>
+                <span class="ms-2">${movie.rating}/10</span>
+              </p>
+
+              <c:if test="${movie.getClass().simpleName eq 'NewRelease'}">
+                <p><i class="fas fa-info-circle me-2"></i>This is a new release movie with premium pricing.</p>
+              </c:if>
+              <c:if test="${movie.getClass().simpleName eq 'ClassicMovie'}">
+                <p><i class="fas fa-info-circle me-2"></i>This is a classic movie from the golden age of cinema.</p>
+                <c:if test="${movie.hasAwards()}">
+                  <p><i class="fas fa-award me-2 text-warning"></i>Award-winning classic film</p>
+                </c:if>
+              </c:if>
+            </div>
           </div>
-          <div class="card-body">
-            <div class="row mb-4">
-              <div class="col-md-4 text-center mb-3 mb-md-0">
-                <img src="${pageContext.request.contextPath}/image-servlet?movieId=${movie.movieId}"
-                     class="img-fluid rounded" alt="${movie.title}" style="max-height: 250px;">
-              </div>
-              <div class="col-md-8">
-                <h4>${movie.title} (${movie.releaseYear})</h4>
-                <p><strong>Director:</strong> ${movie.director}</p>
-                <p><strong>Genre:</strong> ${movie.genre}</p>
-                <p><strong>Rating:</strong> ${movie.rating}/10</p>
 
-                <c:choose>
-                  <c:when test="${movieType == 'newRelease'}">
-                    <p><span class="badge bg-danger">New Release</span></p>
-                  </c:when>
-                  <c:when test="${movieType == 'classic'}">
-                    <p><span class="badge bg-warning text-dark">Classic</span></p>
-                  </c:when>
-                </c:choose>
+          <form action="${pageContext.request.contextPath}/rent-movie" method="post">
+            <input type="hidden" name="movieId" value="${movie.movieId}">
+
+            <div class="rental-details">
+              <h4>Rental Period</h4>
+              <p class="text-muted">Select how many days you would like to rent this movie:</p>
+
+              <div class="mb-3">
+                <label for="rentalDays" class="form-label">Days: <span id="daysValue">7</span></label>
+                <input type="range" class="form-range" id="rentalDays" name="rentalDays" min="1" max="30" value="7">
+                <div class="d-flex justify-content-between">
+                  <small>1 day</small>
+                  <small>15 days</small>
+                  <small>30 days</small>
+                </div>
               </div>
             </div>
 
-            <form action="${pageContext.request.contextPath}/rent-movie" method="post" id="rentForm">
-              <input type="hidden" name="movieId" value="${movie.movieId}">
-
-              <div class="mb-4">
-                <label for="rentalDays" class="form-label">Rental Period (days)</label>
-                <div class="d-flex align-items-center">
-                  <input type="range" class="form-range me-3" id="rentalDays" name="rentalDays"
-                         min="1" max="14" value="3" oninput="updateRentalDetails()">
-                  <span id="selectedDays" class="badge bg-primary px-3 py-2">3 days</span>
-                </div>
+            <div id="priceSummary" class="price-calculation">
+              <div class="price-row">
+                <span>Base rental price:</span>
+                <span id="basePrice">$0.00</span>
               </div>
-
-              <div class="card mb-4">
-                <div class="card-header bg-light">
-                  <h5 class="mb-0">Rental Details</h5>
+              <c:if test="${sessionScope.user.getClass().simpleName eq 'PremiumUser'}">
+                <div class="price-row">
+                  <span>Premium member discount (20%):</span>
+                  <span id="discount" class="text-success">-$0.00</span>
                 </div>
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col-md-6 mb-3 mb-md-0">
-                      <p><strong>Daily Rate:</strong> $<fmt:formatNumber value="${movie.calculateRentalPrice(1)}" pattern="#0.00" /></p>
-                      <p><strong>Rental Period:</strong> <span id="rentalPeriodText">3 days</span></p>
-                      <p><strong>Pickup Date:</strong> <span id="pickupDate">
-                        <fmt:formatDate value="<%= new java.util.Date() %>" pattern="MMMM d, yyyy" />
-                      </span></p>
-                    </div>
-                    <div class="col-md-6">
-                      <p><strong>Due Date:</strong> <span id="dueDate">
-                        <jsp:useBean id="dueDate" class="java.util.Date" />
-                        <c:set target="${dueDate}" property="time" value="${dueDate.time + 3*24*60*60*1000}" />
-                        <fmt:formatDate value="${dueDate}" pattern="MMMM d, yyyy" />
-                      </span></p>
-                      <p><strong>Late Fee (per day):</strong> $<fmt:formatNumber value="${lateFeePerDay}" pattern="#0.00" /></p>
-                      <p class="fw-bold">Total: $<span id="totalCost">
-                        <fmt:formatNumber value="${movie.calculateRentalPrice(3)}" pattern="#0.00" />
-                      </span></p>
-                    </div>
-                  </div>
-                </div>
+              </c:if>
+              <div class="price-row total">
+                <span>Total:</span>
+                <span id="totalPrice">$0.00</span>
               </div>
+            </div>
 
-              <div class="card mb-4">
-                <div class="card-header bg-light">
-                  <h5 class="mb-0">Rental Agreement</h5>
-                </div>
-                <div class="card-body">
-                  <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="agreement" required>
-                    <label class="form-check-label" for="agreement">
-                      I agree to return this movie by the due date. I understand that failing to do so will result in
-                      late fees of $<fmt:formatNumber value="${lateFeePerDay}" pattern="#0.00" /> per day.
-                    </label>
-                  </div>
-                </div>
-              </div>
+            <div class="d-flex justify-content-between mt-4">
+              <a href="${pageContext.request.contextPath}/movie-details?id=${movie.movieId}" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i> Back to Movie
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-shopping-cart me-2"></i> Rent Movie
+              </button>
+            </div>
+          </form>
+        </div>
 
-              <div class="mb-4">
-                <h5>Payment Method</h5>
-                <div class="form-check mb-2">
-                  <input class="form-check-input" type="radio" name="paymentMethod" id="credit" value="credit" checked>
-                  <label class="form-check-label" for="credit">
-                    <i class="far fa-credit-card me-2"></i> Credit Card
-                  </label>
-                </div>
-                <div class="form-check mb-2">
-                  <input class="form-check-input" type="radio" name="paymentMethod" id="paypal" value="paypal">
-                  <label class="form-check-label" for="paypal">
-                    <i class="fab fa-paypal me-2"></i> PayPal
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="paymentMethod" id="wallet" value="wallet">
-                  <label class="form-check-label" for="wallet">
-                    <i class="fas fa-wallet me-2"></i> Store Credits
-                  </label>
-                </div>
-              </div>
+        <div class="col-lg-4 mt-4 mt-lg-0">
+          <div class="card bg-dark border-dark">
+            <div class="card-header bg-black">
+              <h5 class="mb-0">Rental Terms</h5>
+            </div>
+            <div class="card-body">
+              <ul class="list-group list-group-flush bg-transparent">
+                <li class="list-group-item bg-transparent text-light border-dark">
+                  <i class="fas fa-check-circle text-success me-2"></i> Stream unlimited times during your rental period
+                </li>
+                <li class="list-group-item bg-transparent text-light border-dark">
+                  <i class="fas fa-check-circle text-success me-2"></i> HD and 4K quality when available
+                </li>
+                <li class="list-group-item bg-transparent text-light border-dark">
+                  <i class="fas fa-check-circle text-success me-2"></i> Watch on any device
+                </li>
+                <li class="list-group-item bg-transparent text-light border-dark">
+                  <i class="fas fa-check-circle text-success me-2"></i> Extend your rental when needed
+                </li>
+                <li class="list-group-item bg-transparent text-light border-dark">
+                  <i class="fas fa-check-circle text-success me-2"></i> 30-minute free preview before payment
+                </li>
+                <li class="list-group-item bg-transparent text-light border-dark">
+                  <i class="fas fa-exclamation-circle text-warning me-2"></i> Late returns will incur additional fees
+                </li>
+              </ul>
+            </div>
+          </div>
 
-              <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-                <a href="${pageContext.request.contextPath}/movie-details?id=${movie.movieId}" class="btn btn-secondary">
-                  <i class="fas fa-arrow-left me-1"></i> Back to Movie Details
-                </a>
-                <button type="submit" class="btn btn-primary">
-                  <i class="fas fa-shopping-cart me-1"></i> Complete Rental
-                </button>
-              </div>
-            </form>
+          <div class="card bg-dark border-dark mt-4">
+            <div class="card-header bg-black">
+              <h5 class="mb-0">Need Help?</h5>
+            </div>
+            <div class="card-body">
+              <p class="card-text">If you have any questions about renting movies, please contact our customer support.</p>
+              <a href="#" class="btn btn-outline-light">
+                <i class="fas fa-headset me-2"></i> Contact Support
+              </a>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  <!-- Main Content End -->
 
   <!-- Footer Start -->
-  <footer class="bg-dark text-white py-4">
+  <footer class="bg-dark text-white py-4 mt-5">
     <div class="container">
       <div class="row">
-        <div class="col-md-4 mb-3 mb-md-0">
-          <h5>Film Horizon</h5>
-          <p>Your premier movie rental platform with a vast collection of films from all genres and eras.</p>
+        <div class="col-md-4 mb-3">
+          <h5>About FilmHorizon</h5>
+          <p class="text-muted">Your one-stop destination for renting and enjoying the best of cinema.</p>
         </div>
-        <div class="col-md-4 mb-3 mb-md-0">
+        <div class="col-md-4 mb-3">
           <h5>Quick Links</h5>
           <ul class="list-unstyled">
-            <li><a href="${pageContext.request.contextPath}/index.jsp" class="text-white">Home</a></li>
-            <li><a href="${pageContext.request.contextPath}/search-movie" class="text-white">Movies</a></li>
-            <li><a href="${pageContext.request.contextPath}/top-rated" class="text-white">Top Rated</a></li>
-            <li><a href="${pageContext.request.contextPath}/login" class="text-white">Login/Register</a></li>
+            <li><a href="${pageContext.request.contextPath}/">Home</a></li>
+            <li><a href="${pageContext.request.contextPath}/search-movie">Movies</a></li>
+            <li><a href="${pageContext.request.contextPath}/top-rated">Top Rated</a></li>
+            <li><a href="${pageContext.request.contextPath}/view-watchlist">Watchlist</a></li>
           </ul>
         </div>
-        <div class="col-md-4">
-          <h5>Contact Us</h5>
-          <address>
-            <p>Email: support@filmhorizon.com</p>
-            <p>Phone: (123) 456-7890</p>
-            <p>Address: 123 Movie Street, Hollywood, CA 90210</p>
-          </address>
-        </div>
-      </div>
-      <hr>
-      <div class="row">
-        <div class="col-12 text-center">
-          <p class="mb-0">&copy; 2025 Film Horizon. All rights reserved.</p>
-        </div>
-      </div>
-    </div>
-  </footer>
-  <!-- Footer End -->
+        <div class="col-md-4 mb-3">
+          <h5>Connect With Us</h5>
+          <div class="d-flex gap-3 mt-3">
+            <a href="#" class="text-white"><i class="fab fa-facebook fa-lg"></i></a>
+            <a href="#" class="text-white"><i class="fab fa-twitter fa-lg"></i></a>
+            <a href="#" class="text-white"><i class="fab fa-instagram fa-lg"></i></a>
+            <a href="#" class="text-white"><i class="fab fa-youtube fa-lg"></i></a>
+          </div>
+          </div>
+                <hr>
+                <div class="text-center">
+                  <p class="mb-0">&copy; 2025 FilmHorizon. All rights reserved.</p>
+                </div>
+              </div>
+            </footer>
+            <!-- Footer End -->
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+            <!-- Bootstrap JavaScript Bundle with Popper -->
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Rental calculation script -->
-  <script>
-    // Base rates from the server-side
-    const dailyRate = ${movie.calculateRentalPrice(1)};
+            <!-- Custom JS for rental pricing calculation -->
+            <script>
+              document.addEventListener('DOMContentLoaded', function() {
+                const rentalDaysSlider = document.getElementById('rentalDays');
+                const daysValueElement = document.getElementById('daysValue');
+                const basePriceElement = document.getElementById('basePrice');
+                const discountElement = document.getElementById('discount');
+                const totalPriceElement = document.getElementById('totalPrice');
 
-    function updateRentalDetails() {
-      const days = document.getElementById('rentalDays').value;
-      const totalCost = (dailyRate * days).toFixed(2);
+                // Movie pricing constants based on movie type
+                const movieType = "${movie.getClass().simpleName}";
+                let baseDailyRate;
 
-      document.getElementById('selectedDays').innerText = days + ' days';
-      document.getElementById('rentalPeriodText').innerText = days + ' days';
-      document.getElementById('totalCost').innerText = totalCost;
+                if (movieType === "NewRelease") {
+                  baseDailyRate = 5.99;
+                } else if (movieType === "ClassicMovie") {
+                  baseDailyRate = 2.99;
+                  // Add award bonus if applicable
+                  if (${movie.hasAwards()}) {
+                    baseDailyRate += 1.00 / 7; // Add $1 per week, divided per day
+                  }
+                } else {
+                  // Regular movie
+                  baseDailyRate = 3.99;
+                }
 
-      // Update due date
-      const pickupDate = new Date();
-      const dueDate = new Date();
-      dueDate.setDate(pickupDate.getDate() + parseInt(days));
+                // Premium user logic
+                const isPremiumUser = "${sessionScope.user.getClass().simpleName}" === "PremiumUser";
 
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
-      document.getElementById('dueDate').innerText = dueDate.toLocaleDateString('en-US', options);
-    }
+                // Function to update the pricing display
+                function updatePricing() {
+                  const days = parseInt(rentalDaysSlider.value);
+                  daysValueElement.textContent = days;
 
-    // Initialize
-    document.addEventListener('DOMContentLoaded', function() {
-      updateRentalDetails();
-    });
-  </script>
-</body>
-</html>
+                  const basePrice = baseDailyRate * days;
+                  basePriceElement.textContent = '$' + basePrice.toFixed(2);
+
+                  let totalPrice = basePrice;
+
+                  // Apply discount for premium users
+                  if (isPremiumUser) {
+                    const discount = basePrice * 0.2; // 20% discount
+                    discountElement.textContent = '-$' + discount.toFixed(2);
+                    totalPrice = basePrice - discount;
+                  }
+
+                  totalPriceElement.textContent = '$' + totalPrice.toFixed(2);
+                }
+
+                // Set initial pricing
+                updatePricing();
+
+                // Update pricing when slider changes
+                rentalDaysSlider.addEventListener('input', updatePricing);
+              });
+            </script>
+          </body>
+          </html>

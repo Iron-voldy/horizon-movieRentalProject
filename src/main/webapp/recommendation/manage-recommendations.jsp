@@ -1,347 +1,388 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="com.movierental.model.user.User" %>
+<%@ page import="com.movierental.model.movie.Movie" %>
+<%@ page import="com.movierental.model.recommendation.Recommendation" %>
+<%@ page import="com.movierental.model.recommendation.PersonalRecommendation" %>
+<%@ page import="com.movierental.model.recommendation.GeneralRecommendation" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.text.SimpleDateFormat" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Recommendations - FilmHorizon</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/style.css">
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-  <style>
-    .manage-container {
-      margin-top: 30px;
-      margin-bottom: 50px;
-    }
-    .manage-header {
-      margin-bottom: 30px;
-    }
-    .recommendation-tabs .nav-link {
-      color: var(--c-gray);
-      border: none;
-      border-bottom: 2px solid transparent;
-      padding: 12px 20px;
-      border-radius: 0;
-    }
-    .recommendation-tabs .nav-link.active {
-      background-color: transparent;
-      color: var(--c-accent);
-      border-bottom: 2px solid var(--c-accent);
-    }
-    .recommendation-tabs .nav-link:hover:not(.active) {
-      border-bottom: 2px solid var(--c-gray);
-    }
-    .recommendation-table {
-      background-color: var(--c-card-dark);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .recommendation-table th {
-      background-color: rgba(0, 0, 0, 0.2);
-      color: var(--c-accent);
-      font-weight: 500;
-      border-color: #333;
-    }
-    .recommendation-table td {
-      border-color: #333;
-      vertical-align: middle;
-    }
-    .recommendation-type {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-    .type-personal {
-      background-color: rgba(155, 93, 229, 0.1);
-      color: var(--c-accent);
-      border: 1px solid var(--c-accent);
-    }
-    .type-general {
-      background-color: rgba(25, 135, 84, 0.1);
-      color: #198754;
-      border: 1px solid #198754;
-    }
-    .empty-recs {
-      background-color: var(--c-card-dark);
-      border-radius: 10px;
-      padding: 40px;
-      text-align: center;
-      margin-top: 20px;
-    }
-    .add-buttons {
-      position: absolute;
-      right: 15px;
-      top: 15px;
-    }
-    .movie-thumb {
-      width: 50px;
-      height: 70px;
-      object-fit: cover;
-      border-radius: 4px;
-    }
-    .btn-action {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.75rem;
-    }
-    .table-container {
-      overflow-x: auto;
-    }
-    .recommendation-reason {
-      max-width: 250px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Recommendations - Movie Rental System</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary-color: #6C63FF;
+            --secondary-color: #FF6584;
+            --background-dark: #121212;
+            --card-background: #1E1E1E;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B0B0B0;
+            --accent-color: #00C8FF;
+        }
+
+        body {
+            background-color: var(--background-dark);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, rgba(108, 99, 255, 0.1), rgba(255, 101, 132, 0.1));
+            padding: 4rem 0;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .card {
+            background-color: var(--card-background);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+
+        .card-header {
+            background-color: rgba(30,30,30,0.8);
+            color: var(--text-primary);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header i {
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-outline-secondary {
+            color: var(--text-secondary);
+            border-color: rgba(255,255,255,0.1);
+            background-color: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+        }
+
+        .table {
+            color: var(--text-primary);
+        }
+
+        .table thead {
+            background-color: rgba(30,30,30,0.5);
+            color: var(--text-secondary);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        .badge {
+            font-weight: 600;
+        }
+
+        .badge-purple {
+            background: linear-gradient(to right, #8a2be2, #9932CC);
+            color: white;
+        }
+
+        .badge-info {
+            background: linear-gradient(to right, #00c8ff, #0077be);
+            color: white;
+        }
+
+        .btn-outline-primary {
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--accent-color);
+            color: var(--background-dark);
+        }
+
+        .btn-outline-danger {
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: #ff6b6b;
+            color: var(--background-dark);
+        }
+
+        .alert-success {
+            background-color: rgba(75, 209, 160, 0.2);
+            border-color: rgba(75, 209, 160, 0.3);
+            color: #4BD1A0;
+        }
+
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.2);
+            border-color: rgba(220, 53, 69, 0.3);
+            color: #ff6b6b;
+        }
+
+        .empty-state {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            padding: 50px 20px;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .empty-state-title {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .empty-state-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .dropdown-menu {
+            background-color: var(--card-background);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .dropdown-menu .dropdown-item {
+            color: var(--text-primary);
+        }
+
+        .dropdown-menu .dropdown-item:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            .table-responsive {
+                overflow-x: auto;
+            }
+        }
+    </style>
 </head>
 <body>
-  <!-- Navbar Start -->
-  <div class="navbar-dark">
-    <nav class="navbar navbar-expand-lg navbar-dark container">
-      <a class="navbar-brand py-2" href="${pageContext.request.contextPath}/">
-        <img src="${pageContext.request.contextPath}/img/brand/brand-logo.png" width="120" height="40" alt="Brand Logo">
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+    <%
+        // Get user from session
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <div class="search-container mx-auto">
-          <form class="d-flex" action="${pageContext.request.contextPath}/search-movie" method="get">
-            <input class="form-control search-input me-2" type="search" name="searchQuery" placeholder="Search movies..." aria-label="Search">
-            <button class="btn custom-search-btn" type="submit">
-              <i class="fas fa-search"></i>
-            </button>
-          </form>
+        // Get data from request attributes
+        List<Recommendation> recommendations = (List<Recommendation>) request.getAttribute("recommendations");
+        Map<String, Movie> movieMap = (Map<String, Movie>) request.getAttribute("movieMap");
+        List<User> allUsers = (List<User>) request.getAttribute("allUsers");
+        Map<String, User> userMap = new java.util.HashMap<>();
+
+        if (allUsers != null) {
+            for (User u : allUsers) {
+                userMap.put(u.getUserId(), u);
+            }
+        }
+
+        // Date formatter
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy");
+    %>
+
+    <!-- Navigation Bar -->
+    <jsp:include page="../includes/navbar.jsp" />
+
+    <div class="container mt-4">
+        <!-- Flash messages -->
+        <%
+            // Check for messages from session
+            String successMessage = (String) session.getAttribute("successMessage");
+            String errorMessage = (String) session.getAttribute("errorMessage");
+
+            if(successMessage != null) {
+                out.println("<div class='alert alert-success'>");
+                out.println("<i class='bi bi-check-circle-fill me-2'></i>");
+                out.println(successMessage);
+                out.println("</div>");
+                session.removeAttribute("successMessage");
+            }
+
+            if(errorMessage != null) {
+                out.println("<div class='alert alert-danger'>");
+                out.println("<i class='bi bi-exclamation-triangle-fill me-2'></i>");
+                out.println(errorMessage);
+                out.println("</div>");
+                session.removeAttribute("errorMessage");
+            }
+        %>
+
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Manage Recommendations</h1>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="addRecommendationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-plus-circle"></i> Add Recommendation
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="addRecommendationDropdown">
+                    <li><a class="dropdown-item" href="<%= request.getContextPath() %>/manage-recommendations?action=add&type=general">
+                        <i class="bi bi-globe me-2"></i> Add General Recommendation
+                    </a></li>
+                    <li><a class="dropdown-item" href="<%= request.getContextPath() %>/manage-recommendations?action=add&type=personal">
+                        <i class="bi bi-person me-2"></i> Add Personal Recommendation
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="<%= request.getContextPath() %>/generate-recommendations?type=general">
+                        <i class="bi bi-magic me-2"></i> Generate All Recommendations
+                    </a></li>
+                </ul>
+            </div>
         </div>
 
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/search-movie">Movies</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/top-rated">Top Rated</a>
-          </li>
-
-          <!-- Check if user is logged in -->
-          <c:if test="${not empty sessionScope.user}">
-            <!-- User is logged in, show appropriate options -->
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                My Account
-              </a>
-              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/update-profile">Profile</a></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/view-watchlist">Watchlist</a></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/rental-history">Rentals</a></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/user-reviews">My Reviews</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Logout</a></li>
-              </ul>
-            </li>
-          </c:if>
-          <c:if test="${empty sessionScope.user}">
-            <!-- User is not logged in, show login button -->
-            <li class="nav-item">
-              <a class="nav-link" href="${pageContext.request.contextPath}/login">
-                <i class="fas fa-sign-in-alt"></i> Login
-              </a>
-            </li>
-          </c:if>
-        </ul>
-      </div>
-    </nav>
-  </div>
-  <!-- Navbar End -->
-
-  <!-- Main Content Start -->
-  <div class="container manage-container">
-    <!-- Alert Messages -->
-    <c:if test="${not empty sessionScope.successMessage}">
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        ${sessionScope.successMessage}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-      <c:remove var="successMessage" scope="session" />
-    </c:if>
-
-    <c:if test="${not empty sessionScope.errorMessage}">
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        ${sessionScope.errorMessage}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-      <c:remove var="errorMessage" scope="session" />
-    </c:if>
-
-    <div class="manage-header position-relative">
-      <h2>Manage Recommendations</h2>
-      <p class="text-muted">Create, edit, and delete movie recommendations for users.</p>
-
-      <div class="add-buttons">
-        <a href="${pageContext.request.contextPath}/manage-recommendations?action=add&type=general" class="btn btn-sm btn-outline-light me-2">
-          <i class="fas fa-plus me-1"></i> Add General
-        </a>
-        <a href="${pageContext.request.contextPath}/manage-recommendations?action=add&type=personal" class="btn btn-sm btn-primary">
-          <i class="fas fa-plus me-1"></i> Add Personal
-        </a>
-      </div>
-    </div>
-
-    <!-- Recommendations List -->
-    <div class="table-container">
-      <c:choose>
-        <c:when test="${empty recommendations || recommendations.size() == 0}">
-          <div class="empty-recs">
-            <i class="fas fa-film fa-3x mb-3 text-muted"></i>
-            <h4>No recommendations available</h4>
-            <p class="text-muted">There are no recommendations in the system.</p>
-            <div class="mt-3">
-              <a href="${pageContext.request.contextPath}/manage-recommendations?action=add&type=general" class="btn btn-outline-light me-2">
-                <i class="fas fa-plus me-1"></i> Create General Recommendation
-              </a>
-              <a href="${pageContext.request.contextPath}/manage-recommendations?action=add&type=personal" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i> Create Personal Recommendation
-              </a>
+        <!-- Recommendations Table -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-list-ul"></i> All Recommendations
             </div>
-          </div>
-        </c:when>
-        <c:otherwise>
-          <table class="table table-dark recommendation-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Movie</th>
-                <th>Type</th>
-                <th>User</th>
-                <th>Reason</th>
-                <th>Score</th>
-                <th>Date</th>
-                <th>Actions</th>
-                              </tr>
+            <div class="card-body">
+                <% if (recommendations == null || recommendations.isEmpty()) { %>
+                    <div class="empty-state">
+                        <i class="bi bi-lightning empty-state-icon"></i>
+                        <h3 class="empty-state-title">No Recommendations Available</h3>
+                        <p class="empty-state-subtitle">Start creating recommendations for your users</p>
+                        <a href="<%= request.getContextPath() %>/manage-recommendations?action=add&type=general" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Add Recommendation
+                        </a>
+                    </div>
+                <% } else { %>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%">#</th>
+                                    <th style="width: 15%">Type</th>
+                                    <th style="width: 25%">Movie</th>
+                                    <th style="width: 15%">User</th>
+                                    <th style="width: 15%">Generated</th>
+                                    <th style="width: 10%">Score</th>
+                                    <th style="width: 15%">Actions</th>
+                                </tr>
                             </thead>
                             <tbody>
-                              <c:forEach var="recommendation" items="${recommendations}">
-                                <c:set var="movie" value="${movieMap[recommendation.movieId]}" />
+                                <%
+                                int count = 1;
+                                for (Recommendation rec : recommendations) {
+                                    Movie movie = movieMap.get(rec.getMovieId());
+                                    boolean isPersonal = rec.isPersonalized();
+                                    String userDisplayName = "N/A";
+
+                                    if (isPersonal && rec.getUserId() != null) {
+                                        User recUser = userMap.get(rec.getUserId());
+                                        if (recUser != null) {
+                                            userDisplayName = recUser.getUsername();
+                                        } else {
+                                            userDisplayName = "User ID: " + rec.getUserId();
+                                        }
+                                    }
+                                %>
                                 <tr>
-                                  <td><small>${recommendation.recommendationId.substring(0, 8)}...</small></td>
-                                  <td>
-                                    <c:if test="${not empty movie}">
-                                      <div class="d-flex align-items-center">
-                                        <img src="${pageContext.request.contextPath}/image-servlet?movieId=${movie.movieId}" class="movie-thumb me-2" alt="Movie Poster">
-                                        <div>
-                                          <div class="fw-bold">${movie.title}</div>
-                                          <small class="text-muted">${movie.releaseYear}</small>
+                                    <td><%= count++ %></td>
+                                    <td>
+                                        <% if (isPersonal) { %>
+                                            <span class="badge badge-purple">
+                                                <i class="bi bi-person-fill"></i> Personal
+                                            </span>
+                                        <% } else { %>
+                                            <span class="badge badge-info">
+                                                <i class="bi bi-globe"></i> General
+                                            </span>
+                                            <%
+                                            if (rec instanceof GeneralRecommendation) {
+                                                GeneralRecommendation genRec = (GeneralRecommendation) rec;
+                                                String category = genRec.getCategory();
+                                                if (category != null && !category.isEmpty()) {
+                                            %>
+                                                <div class="mt-1 small text-muted"><%= category %></div>
+                                            <%
+                                                }
+                                            }
+                                            %>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (movie != null) { %>
+                                            <strong><%= movie.getTitle() %></strong>
+                                            <div class="small text-muted"><%= movie.getDirector() %> (<%= movie.getReleaseYear() %>)</div>
+                                        <% } else { %>
+                                            <span class="text-danger">Unknown Movie</span>
+                                            <div class="small text-muted">ID: <%= rec.getMovieId() %></div>
+                                        <% } %>
+                                    </td>
+                                    <td><%= userDisplayName %></td>
+                                    <td><%= dateFormat.format(rec.getGeneratedDate()) %></td>
+                                    <td><%= String.format("%.1f", rec.getScore()) %></td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="<%= request.getContextPath() %>/manage-recommendations?action=edit&id=<%= rec.getRecommendationId() %>"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="<%= request.getContextPath() %>/manage-recommendations?action=delete&id=<%= rec.getRecommendationId() %>"
+                                               class="btn btn-sm btn-outline-danger"
+                                               onclick="return confirm('Are you sure you want to delete this recommendation?')">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
                                         </div>
-                                      </div>
-                                    </c:if>
-                                    <c:if test="${empty movie}">
-                                      <span class="text-danger">Movie not found</span>
-                                    </c:if>
-                                  </td>
-                                  <td>
-                                    <c:choose>
-                                      <c:when test="${recommendation.isPersonalized()}">
-                                        <span class="recommendation-type type-personal">Personal</span>
-                                      </c:when>
-                                      <c:otherwise>
-                                        <span class="recommendation-type type-general">General</span>
-                                      </c:otherwise>
-                                    </c:choose>
-                                  </td>
-                                  <td>
-                                    <c:choose>
-                                      <c:when test="${recommendation.isPersonalized() && not empty recommendation.userId}">
-                                        <c:set var="user" value="${null}" />
-                                        <c:forEach var="userEntry" items="${allUsers}">
-                                          <c:if test="${userEntry.userId eq recommendation.userId}">
-                                            <c:set var="user" value="${userEntry}" />
-                                          </c:if>
-                                        </c:forEach>
-                                        <c:choose>
-                                          <c:when test="${not empty user}">
-                                            ${user.username}
-                                          </c:when>
-                                          <c:otherwise>
-                                            <span class="text-danger">User not found</span>
-                                          </c:otherwise>
-                                        </c:choose>
-                                      </c:when>
-                                      <c:otherwise>
-                                        <span class="text-muted">N/A</span>
-                                      </c:otherwise>
-                                    </c:choose>
-                                  </td>
-                                  <td><div class="recommendation-reason">${recommendation.reason}</div></td>
-                                  <td>${recommendation.score}</td>
-                                  <td><fmt:formatDate value="${recommendation.generatedDate}" pattern="MMM dd, yyyy" /></td>
-                                  <td>
-                                    <div class="d-flex">
-                                      <a href="${pageContext.request.contextPath}/manage-recommendations?action=edit&id=${recommendation.recommendationId}" class="btn btn-sm btn-outline-light btn-action me-1">
-                                        <i class="fas fa-edit"></i>
-                                      </a>
-                                      <a href="${pageContext.request.contextPath}/manage-recommendations?action=delete&id=${recommendation.recommendationId}"
-                                         class="btn btn-sm btn-outline-danger btn-action"
-                                         onclick="return confirm('Are you sure you want to delete this recommendation?');">
-                                        <i class="fas fa-trash"></i>
-                                      </a>
-                                    </div>
-                                  </td>
+                                    </td>
                                 </tr>
-                              </c:forEach>
+                                <% } %>
                             </tbody>
-                          </table>
-                        </c:otherwise>
-                      </c:choose>
-                    </div>
-                  </div>
-                  <!-- Main Content End -->
+                        </table>
+                        </div>
+                                        <% } %>
+                                    </div>
+                                </div>
 
-                  <!-- Footer Start -->
-                  <footer class="bg-dark text-white py-4 mt-5">
-                    <div class="container">
-                      <div class="row">
-                        <div class="col-md-4 mb-3">
-                          <h5>About FilmHorizon</h5>
-                          <p class="text-muted">Your one-stop destination for renting and enjoying the best of cinema.</p>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                          <h5>Quick Links</h5>
-                          <ul class="list-unstyled">
-                            <li><a href="${pageContext.request.contextPath}/">Home</a></li>
-                            <li><a href="${pageContext.request.contextPath}/search-movie">Movies</a></li>
-                            <li><a href="${pageContext.request.contextPath}/top-rated">Top Rated</a></li>
-                            <li><a href="${pageContext.request.contextPath}/view-watchlist">Watchlist</a></li>
-                          </ul>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                          <h5>Connect With Us</h5>
-                          <div class="d-flex gap-3 mt-3">
-                            <a href="#" class="text-white"><i class="fab fa-facebook fa-lg"></i></a>
-                            <a href="#" class="text-white"><i class="fab fa-twitter fa-lg"></i></a>
-                            <a href="#" class="text-white"><i class="fab fa-instagram fa-lg"></i></a>
-                            <a href="#" class="text-white"><i class="fab fa-youtube fa-lg"></i></a>
-                          </div>
-                        </div>
-                      </div>
-                      <hr>
-                      <div class="text-center">
-                        <p class="mb-0">&copy; 2025 FilmHorizon. All rights reserved.</p>
-                      </div>
-                    </div>
-                  </footer>
-                  <!-- Footer End -->
+                                <!-- Back to Recommendations Link -->
+                                <div class="mt-3">
+                                    <a href="<%= request.getContextPath() %>/view-recommendations" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left"></i> Back to Recommendations
+                                    </a>
+                                </div>
+                            </div>
 
-                  <!-- Bootstrap JavaScript Bundle with Popper -->
-                  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-                </body>
-                </html>
+                            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+                        </body>
+                        </html>

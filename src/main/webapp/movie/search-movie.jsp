@@ -1,516 +1,749 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="com.movierental.model.user.User" %>
+<%@ page import="com.movierental.model.movie.Movie" %>
+<%@ page import="com.movierental.model.movie.NewRelease" %>
+<%@ page import="com.movierental.model.movie.ClassicMovie" %>
+<%@ page import="com.movierental.model.movie.MovieManager" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.text.SimpleDateFormat" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Search Movies - FilmHorizon</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/style.css">
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-  <style>
-    .search-header {
-      background-color: var(--c-card-dark);
-      border-radius: 10px;
-      padding: 30px;
-      margin-top: 30px;
-      margin-bottom: 30px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-    .search-title {
-      font-size: 2rem;
-      font-weight: 600;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .search-form {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    .results-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .results-title {
-      font-size: 1.5rem;
-      font-weight: 600;
-    }
-    .sort-dropdown .dropdown-menu {
-      background-color: var(--c-card-dark);
-      border: 1px solid var(--c-dark-gray);
-    }
-    .sort-dropdown .dropdown-item {
-      color: var(--c-secondary);
-    }
-    .sort-dropdown .dropdown-item:hover {
-      background-color: var(--c-dark-gray);
-    }
-    .movie-grid {
-      margin-bottom: 50px;
-    }
-    .movie-card {
-      height: 100%;
-      background-color: var(--c-card-dark);
-      border-radius: 10px;
-      overflow: hidden;
-      transition: transform 0.3s ease;
-      border: none;
-    }
-    .movie-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-    }
-    .movie-card .card-img-top {
-      height: 300px;
-      object-fit: cover;
-    }
-    .movie-card .card-body {
-      padding: 15px;
-    }
-    .movie-card .card-title {
-      font-weight: 600;
-      margin-bottom: 5px;
-      font-size: 1.1rem;
-    }
-    .movie-card .card-text {
-      color: var(--c-gray);
-      font-size: 0.9rem;
-    }
-    .movie-badges {
-      margin-bottom: 10px;
-    }
-    .filter-container {
-      background-color: rgba(0, 0, 0, 0.2);
-      border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 30px;
-    }
-    .filter-title {
-      font-size: 1.2rem;
-      font-weight: 600;
-      margin-bottom: 15px;
-      color: var(--c-secondary);
-    }
-    .filter-group {
-      margin-bottom: 15px;
-    }
-    .filter-label {
-      font-weight: 500;
-      margin-bottom: 8px;
-      color: var(--c-secondary);
-    }
-    .filter-check {
-      margin-bottom: 5px;
-    }
-    .no-results {
-      background-color: rgba(0, 0, 0, 0.2);
-      border-radius: 10px;
-      padding: 50px 20px;
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .no-results-icon {
-      font-size: 3rem;
-      color: var(--c-gray);
-      margin-bottom: 20px;
-    }
-    .no-results-text {
-      font-size: 1.2rem;
-      color: var(--c-secondary);
-      margin-bottom: 20px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Movies - FilmFlux</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --primary-dark: #5A52E0;
+            --secondary: #FF6584;
+            --dark: #151419;
+            --darker: #0F0E13;
+            --light: #F3F3F4;
+            --gray: #8B8B99;
+            --success: #4BD1A0;
+            --warning: #FFC965;
+            --danger: #FF6B78;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            background-color: rgba(15, 14, 19, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 0;
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-right: 30px;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--light);
+            margin: 0 15px;
+            position: relative;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            opacity: 1;
+            color: var(--primary);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+
+        /* Main Container */
+        .main-container {
+            padding-top: 30px;
+        }
+
+        /* Search Card */
+        .search-card {
+            background: rgba(15, 14, 19, 0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--light);
+            display: flex;
+            align-items: center;
+        }
+
+        .header-title i {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-right: 10px;
+            font-size: 1.4rem;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Form Elements */
+        .form-control {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            padding: 12px 15px;
+            font-size: 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.25);
+            color: var(--light);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .form-select {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            padding: 12px 15px;
+            font-size: 1rem;
+            border-radius: 10px;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        }
+
+        .form-select:focus {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.25);
+            color: var(--light);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 20px;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            border: none;
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.6);
+            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+        }
+
+        .btn-outline-primary {
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-sm {
+            padding: 8px 15px;
+            font-size: 0.85rem;
+        }
+
+        /* Movie Grid */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .movie-card {
+            background: rgba(15, 14, 19, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(108, 99, 255, 0.3);
+            border-color: rgba(108, 99, 255, 0.3);
+        }
+
+        .movie-poster {
+            position: relative;
+            height: 375px;
+            overflow: hidden;
+        }
+
+        .movie-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .movie-card:hover .movie-poster img {
+            transform: scale(1.05);
+        }
+
+        .poster-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(15, 14, 19, 0.9), transparent);
+            padding: 20px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .movie-card:hover .poster-overlay {
+            background: linear-gradient(to top, rgba(108, 99, 255, 0.3), transparent);
+        }
+
+        .poster-placeholder {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(15, 14, 19, 0.8), rgba(30, 28, 38, 0.8));
+            color: var(--gray);
+            font-size: 4rem;
+        }
+
+        .availability-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            z-index: 2;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .available {
+            background-color: var(--success);
+            box-shadow: 0 0 15px var(--success);
+        }
+
+        .unavailable {
+            background-color: var(--danger);
+            box-shadow: 0 0 15px var(--danger);
+        }
+
+        .movie-info {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .movie-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            color: var(--light);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+
+        .movie-subtitle {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+
+        .movie-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+
+        .badge-blue {
+            background: linear-gradient(to right, #0277bd, #00c8ff);
+            color: white;
+        }
+
+        .badge-purple {
+            background: linear-gradient(to right, #8a2be2, #ff00ff);
+            color: white;
+        }
+
+        .badge-gold {
+            background: linear-gradient(to right, #FFC965, #FFAA00);
+            color: #333;
+        }
+
+        .rating {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 15px;
+        }
+
+        .rating-stars {
+            color: var(--warning);
+            margin-right: 8px;
+        }
+
+        .rating-value {
+            font-weight: 600;
+            color: var(--light);
+        }
+
+        .movie-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .movie-action-btn {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--gray);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .movie-action-btn:hover {
+            background-color: rgba(108, 99, 255, 0.1);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .movie-action-btn i {
+            margin-right: 5px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 50px 20px;
+            text-align: center;
+            background: rgba(15, 14, 19, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: var(--gray);
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            color: var(--light);
+            margin-bottom: 10px;
+        }
+
+        .empty-subtitle {
+            color: var(--gray);
+            margin-bottom: 25px;
+        }
+
+        /* Alerts */
+        .alert {
+            border: none;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background-color: rgba(75, 209, 160, 0.2);
+            color: var(--success);
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-danger {
+            background-color: rgba(255, 107, 120, 0.2);
+            color: var(--danger);
+            border-left: 4px solid var(--danger);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+                gap: 15px;
+            }
+
+            .movie-poster {
+                height: 280px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 10px;
+            }
+
+            .movie-poster {
+                height: 240px;
+            }
+
+            .movie-title {
+                font-size: 1rem;
+            }
+
+            .movie-subtitle, .movie-action-btn {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <!-- Navbar Start -->
-  <div class="navbar-dark">
-    <nav class="navbar navbar-expand-lg navbar-dark container">
-      <a class="navbar-brand py-2" href="${pageContext.request.contextPath}/">
-        <img src="${pageContext.request.contextPath}/img/brand/brand-logo.png" width="120" height="40" alt="Brand Logo">
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+    <%
+        // Get user from session
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <div class="search-container mx-auto">
-          <form class="d-flex" action="${pageContext.request.contextPath}/search-movie" method="get">
-            <input class="form-control search-input me-2" type="search" name="searchQuery"
-                   value="${searchQuery}" placeholder="Search movies..." aria-label="Search">
-            <button class="btn custom-search-btn" type="submit">
-              <i class="fas fa-search"></i>
+        // Get search parameters and movie list from request attributes
+        String searchQuery = (String) request.getAttribute("searchQuery");
+        String searchType = (String) request.getAttribute("searchType");
+        List<Movie> movies = (List<Movie>) request.getAttribute("movies");
+
+        if (searchQuery == null) searchQuery = "";
+        if (searchType == null) searchType = "title";
+        if (movies == null) movies = new ArrayList<Movie>();
+
+        // Create MovieManager to get image URLs
+        MovieManager movieManager = new MovieManager(application);
+    %>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="<%= request.getContextPath() %>/">FilmFlux</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
             </button>
-          </form>
-        </div>
-
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/">Home</a>
-          </li>
-          <li class="nav-item active">
-            <a class="nav-link active" href="${pageContext.request.contextPath}/search-movie">Movies</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/top-rated">Top Rated</a>
-          </li>
-
-          <!-- Check if user is logged in -->
-          <c:if test="${not empty sessionScope.user}">
-            <!-- User is logged in, show appropriate options -->
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                My Account
-              </a>
-              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/update-profile">Profile</a></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/view-watchlist">Watchlist</a></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/rental-history">Rentals</a></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/user-reviews">My Reviews</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Logout</a></li>
-              </ul>
-            </li>
-          </c:if>
-          <c:if test="${empty sessionScope.user}">
-            <!-- User is not logged in, show login button -->
-            <li class="nav-item">
-              <a class="nav-link" href="${pageContext.request.contextPath}/login">
-                <i class="fas fa-sign-in-alt"></i> Login
-              </a>
-            </li>
-          </c:if>
-        </ul>
-      </div>
-    </nav>
-  </div>
-  <!-- Navbar End -->
-
-  <!-- Main Content Start -->
-  <div class="container">
-    <!-- Alert Messages -->
-    <c:if test="${not empty sessionScope.successMessage}">
-      <div class="alert alert-success alert-dismissible fade show mt-4" role="alert">
-        ${sessionScope.successMessage}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-      <c:remove var="successMessage" scope="session" />
-    </c:if>
-    <c:if test="${not empty sessionScope.errorMessage}">
-      <div class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
-        ${sessionScope.errorMessage}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-      <c:remove var="errorMessage" scope="session" />
-    </c:if>
-
-    <!-- Search Header -->
-    <div class="search-header">
-      <h2 class="search-title">Find Your Perfect Movie</h2>
-      <div class="search-form">
-        <form action="${pageContext.request.contextPath}/search-movie" method="get">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label for="searchQuery" class="form-label">Search</label>
-              <input type="text" class="form-control" id="searchQuery" name="searchQuery"
-                     value="${searchQuery}" placeholder="Enter movie title, director, or keyword...">
-            </div>
-
-            <div class="col-md-3">
-              <label for="searchType" class="form-label">Search By</label>
-              <select class="form-select" id="searchType" name="searchType">
-                <option value="title" ${searchType == 'title' ? 'selected' : ''}>Title</option>
-                <option value="director" ${searchType == 'director' ? 'selected' : ''}>Director</option>
-                <option value="genre" ${searchType == 'genre' ? 'selected' : ''}>Genre</option>
-              </select>
-            </div>
-
-            <div class="col-md-3 d-flex align-items-end">
-              <button type="submit" class="btn btn-primary w-100">
-                <i class="fas fa-search me-2"></i> Search
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="row">
-      <!-- Filters Sidebar (Optional) -->
-      <div class="col-lg-3 d-none d-lg-block">
-        <div class="filter-container">
-          <h3 class="filter-title">Filters</h3>
-
-          <div class="filter-group">
-            <label class="filter-label">Movie Type</label>
-            <div class="filter-check">
-              <input class="form-check-input" type="checkbox" id="typeRegular" name="type" value="regular">
-              <label class="form-check-label" for="typeRegular">Regular</label>
-            </div>
-            <div class="filter-check">
-              <input class="form-check-input" type="checkbox" id="typeNew" name="type" value="newRelease">
-              <label class="form-check-label" for="typeNew">New Release</label>
-            </div>
-            <div class="filter-check">
-              <input class="form-check-input" type="checkbox" id="typeClassic" name="type" value="classic">
-              <label class="form-check-label" for="typeClassic">Classic</label>
-            </div>
-          </div>
-
-          <div class="filter-group">
-            <label class="filter-label">Availability</label>
-            <div class="filter-check">
-              <input class="form-check-input" type="checkbox" id="availableOnly" name="available" value="true" checked>
-              <label class="form-check-label" for="availableOnly">Available Now</label>
-            </div>
-          </div>
-
-          <div class="filter-group">
-            <label class="filter-label">Rating</label>
-            <div class="filter-check">
-              <input class="form-check-input" type="checkbox" id="rating5plus" name="minRating" value="5">
-              <label class="form-check-label" for="rating5plus">5+ Stars</label>
-            </div>
-            <div class="filter-check">
-              <input class="form-check-input" type="checkbox" id="rating7plus" name="minRating" value="7">
-              <label class="form-check-label" for="rating7plus">7+ Stars</label>
-            </div>
-            <div class="filter-check">
-              <input class="form-check-input" type="checkbox" id="rating9plus" name="minRating" value="9">
-              <label class="form-check-label" for="rating9plus">9+ Stars</label>
-            </div>
-          </div>
-
-          <div class="filter-group">
-            <label class="filter-label">Popular Genres</label>
-            <div class="filter-check">
-              <input class="form-check-input" type="checkbox" id="genreAction" name="genre" value="Action">
-              <label class="form-check-label" for="genreAction">Action</label>
-            </div>
-            <div class="filter-check">
-              <input class="form-check-input" type="checkbox" id="genreComedy" name="genre" value="Comedy">
-              <label class="form-check-label" for="genreComedy">Comedy</label>
-            </div>
-            <div class="filter-check">
-              <input class="form-check-input" type="checkbox" id="genreDrama" name="genre" value="Drama">
-              <label class="form-check-label" for="genreDrama">Drama</label>
-            </div>
-            <div class="filter-check">
-              <input class="form-check-input" type="checkbox" id="genreSciFi" name="genre" value="Sci-Fi">
-              <label class="form-check-label" for="genreSciFi">Sci-Fi</label>
-            </div>
-            <div class="filter-check">
-              <input class="form-check-input" type="checkbox" id="genreHorror" name="genre" value="Horror">
-              <label class="form-check-label" for="genreHorror">Horror</label>
-            </div>
-          </div>
-
-          <button type="button" class="btn btn-sm btn-primary w-100 mt-3">Apply Filters</button>
-        </div>
-      </div>
-
-      <!-- Movie Results -->
-      <div class="col-lg-9">
-        <div class="results-header">
-          <h3 class="results-title">
-            <c:choose>
-              <c:when test="${not empty searchQuery}">
-                Search Results for: "${searchQuery}"
-              </c:when>
-              <c:otherwise>
-                All Movies
-              </c:otherwise>
-            </c:choose>
-            <c:if test="${not empty movies}">
-              <small class="text-muted">(${movies.size()} results)</small>
-            </c:if>
-          </h3>
-
-          <!-- Sort Dropdown -->
-          <div class="dropdown sort-dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="fas fa-sort me-2"></i> Sort By
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
-              <li><a class="dropdown-item" href="${pageContext.request.contextPath}/search-movie?searchQuery=${searchQuery}&searchType=${searchType}&sort=rating-desc">
-                <i class="fas fa-star me-2"></i> Rating (High to Low)
-              </a></li>
-              <li><a class="dropdown-item" href="${pageContext.request.contextPath}/search-movie?searchQuery=${searchQuery}&searchType=${searchType}&sort=rating-asc">
-                <i class="fas fa-star-half-alt me-2"></i> Rating (Low to High)
-              </a></li>
-              <li><a class="dropdown-item" href="${pageContext.request.contextPath}/search-movie?searchQuery=${searchQuery}&searchType=${searchType}&sort=year-desc">
-                <i class="fas fa-calendar-alt me-2"></i> Year (New to Old)
-              </a></li>
-              <li><a class="dropdown-item" href="${pageContext.request.contextPath}/search-movie?searchQuery=${searchQuery}&searchType=${searchType}&sort=year-asc">
-                <i class="fas fa-calendar-alt me-2"></i> Year (Old to New)
-              </a></li>
-              <li><a class="dropdown-item" href="${pageContext.request.contextPath}/search-movie?searchQuery=${searchQuery}&searchType=${searchType}&sort=title-asc">
-                <i class="fas fa-font me-2"></i> Title (A-Z)
-              </a></li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Movie Grid -->
-        <div class="row movie-grid">
-          <c:choose>
-            <c:when test="${not empty movies}">
-              <c:forEach var="movie" items="${movies}">
-                <div class="col-md-4 col-sm-6 mb-4">
-                  <div class="card movie-card">
-                    <img src="${pageContext.request.contextPath}/image-servlet?movieId=${movie.movieId}"
-                         class="card-img-top" alt="${movie.title}">
-                    <div class="card-body">
-                      <h5 class="card-title">${movie.title}</h5>
-                      <p class="card-text">${movie.director} (${movie.releaseYear})</p>
-
-                      <div class="movie-badges">
-                        <span class="badge bg-primary">${movie.genre}</span>
-
-                        <c:if test="${movie['class'].simpleName eq 'NewRelease'}">
-                          <span class="badge bg-danger">New Release</span>
-                        </c:if>
-
-                        <c:if test="${movie['class'].simpleName eq 'ClassicMovie'}">
-                          <span class="badge bg-warning text-dark">Classic</span>
-                        </c:if>
-                      </div>
-
-                      <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                          <c:forEach begin="1" end="5" var="star">
-                            <c:choose>
-                              <c:when test="${star <= movie.rating/2}">
-                                <i class="fas fa-star text-warning"></i>
-                              </c:when>
-                              <c:when test="${star <= (movie.rating/2) + 0.5}">
-                                <i class="fas fa-star-half-alt text-warning"></i>
-                              </c:when>
-                              <c:otherwise>
-                                <i class="far fa-star text-warning"></i>
-                              </c:otherwise>
-                            </c:choose>
-                          </c:forEach>
-                        </div>
-                        <span class="badge bg-secondary">${movie.rating}/10</span>
-                      </div>
-
-                      <c:if test="${not movie.available}">
-                        <div class="mt-2">
-                          <span class="badge bg-danger w-100">Currently Unavailable</span>
-                        </div>
-                      </c:if>
-
-                      <div class="mt-3">
-                        <a href="${pageContext.request.contextPath}/movie-details?id=${movie.movieId}"
-                           class="btn btn-sm btn-primary w-100">
-                          <i class="fas fa-info-circle me-1"></i> View Details
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/">
+                            <i class="bi bi-house-fill"></i> Home
                         </a>
-                      </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="<%= request.getContextPath() %>/search-movie">
+                            <i class="bi bi-film"></i> Movies
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/rental-history">
+                            <i class="bi bi-collection-play"></i> My Rentals
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/view-watchlist">
+                            <i class="bi bi-bookmark-star"></i> Watchlist
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                    <a class="nav-link"  href="<%= request.getContextPath() %>/user-reviews">
+                        <i class="bi bi-star"></i> My Reviews
+                    </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/view-recommendations">
+                            <i class="bi bi-lightning-fill"></i> Recommendations
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/user/profile.jsp">
+                            <i class="bi bi-person-circle"></i> <%= user.getUsername() %>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/logout">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <!-- Flash messages -->
+        <%
+            // Check for messages from session
+            String successMessage = (String) session.getAttribute("successMessage");
+            String errorMessage = (String) session.getAttribute("errorMessage");
+
+            if(successMessage != null) {
+                out.println("<div class='alert alert-success'>");
+                out.println("<i class='bi bi-check-circle-fill me-2'></i>");
+                out.println(successMessage);
+                out.println("</div>");
+                session.removeAttribute("successMessage");
+            }
+
+            if(errorMessage != null) {
+                out.println("<div class='alert alert-danger'>");
+                out.println("<i class='bi bi-exclamation-triangle-fill me-2'></i>");
+                out.println(errorMessage);
+                out.println("</div>");
+                session.removeAttribute("errorMessage");
+            }
+        %>
+
+        <!-- Search Card -->
+        <div class="search-card fade-in">
+            <div class="card-header">
+                <div class="header-title">
+                    <i class="bi bi-search"></i> Browse Movies
+                </div>
+                <div>
+                    <a href="<%= request.getContextPath() %>/add-movie" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i> Add Movie
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="<%= request.getContextPath() %>/search-movie" method="get">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="searchQuery" name="searchQuery"
+                                   placeholder="Search movies..." value="<%= searchQuery %>">
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" id="searchType" name="searchType">
+                                <option value="title" <%= "title".equals(searchType) ? "selected" : "" %>>Title</option>
+                                <option value="director" <%= "director".equals(searchType) ? "selected" : "" %>>Director</option>
+                                <option value="genre" <%= "genre".equals(searchType) ? "selected" : "" %>>Genre</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
                     </div>
-                  </div>
-                </div>
-              </c:forEach>
-            </c:when>
-            <c:otherwise>
-              <div class="col-12">
-                <div class="no-results">
-                  <div class="no-results-icon">
-                    <i class="fas fa-search"></i>
-                  </div>
-                  <div class="no-results-text">
-                    <c:choose>
-                      <c:when test="${not empty searchQuery}">
-                        No movies found matching "${searchQuery}".
-                      </c:when>
-                      <c:otherwise>
-                        No movies available at this time.
-                      </c:otherwise>
-                    </c:choose>
-                  </div>
-                  <a href="${pageContext.request.contextPath}/search-movie" class="btn btn-primary">
-                    <i class="fas fa-redo me-2"></i> Clear Search
-                  </a>
-                </div>
-              </div>
-            </c:otherwise>
-          </c:choose>
+                </form>
+            </div>
         </div>
 
-        <!-- Pagination -->
-        <c:if test="${totalPages > 1}">
-          <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-              <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                <a class="page-link" href="${pageContext.request.contextPath}/search-movie?page=${currentPage - 1}&searchQuery=${searchQuery}&searchType=${searchType}" aria-label="Previous">
-                  <span aria-hidden="true">&laquo;</span>
+        <!-- Movies Grid -->
+        <% if(movies.isEmpty()) { %>
+            <div class="empty-state fade-in">
+                <i class="bi bi-film empty-icon"></i>
+                <h2 class="empty-title">No movies found</h2>
+                <p class="empty-subtitle">Try adjusting your search or add a new movie to the collection</p>
+                <a href="<%= request.getContextPath() %>/add-movie" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add a Movie
                 </a>
-              </li>
+            </div>
+        <% } else { %>
+            <div class="movie-grid">
+                <% for(Movie movie : movies) {
+                    boolean isNewRelease = movie instanceof NewRelease;
+                    boolean isClassic = movie instanceof ClassicMovie;
+                    boolean hasAwards = isClassic && ((ClassicMovie)movie).hasAwards();
+                    String movieType = isNewRelease ? "New Release" : (isClassic ? "Classic" : "Regular");
 
-              <c:forEach begin="1" end="${totalPages}" var="pageNum">
-                <li class="page-item ${pageNum == currentPage ? 'active' : ''}">
-                  <a class="page-link" href="${pageContext.request.contextPath}/search-movie?page=${pageNum}&searchQuery=${searchQuery}&searchType=${searchType}">
-                    ${pageNum}
-                  </a>
-                </li>
-              </c:forEach>
+                    // Get cover photo URL if available
+                    String coverPhotoUrl = movieManager.getCoverPhotoUrl(movie);
+                    boolean hasCoverPhoto = movie.getCoverPhotoPath() != null && !movie.getCoverPhotoPath().isEmpty();
+                %>
+                    <div class="movie-card fade-in">
+                        <div class="movie-poster">
+                            <% if(hasCoverPhoto) { %>
+                                <img src="<%= request.getContextPath() %>/image-servlet?movieId=<%= movie.getMovieId() %>" alt="<%= movie.getTitle() %>">
+                            <% } else { %>
+                                <div class="poster-placeholder">
+                                    <i class="bi bi-film"></i>
+                                </div>
+                            <% } %>
+                            <div class="availability-indicator <%= movie.isAvailable() ? "available" : "unavailable" %>"></div>
+                            <div class="poster-overlay">
+                                <h5 class="movie-title"><%= movie.getTitle() %></h5>
+                                <p class="movie-subtitle">
+                                    <%= movie.getDirector() %> • <%= movie.getReleaseYear() %>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="movie-info">
+                            <div class="movie-badges">
+                                <span class="badge badge-blue"><%= movie.getGenre() %></span>
+                                <% if(isNewRelease) { %>
+                                    <span class="badge badge-purple">New Release</span>
+                                <% } else if(isClassic) { %>
+                                    <span class="badge badge-purple">Classic</span>
+                                    <% if(hasAwards) { %>
+                                        <span class="badge badge-gold">Award Winner</span>
+                                    <% } %>
+                                <% } %>
+                            </div>
 
-              <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="${pageContext.request.contextPath}/search-movie?page=${currentPage + 1}&searchQuery=${searchQuery}&searchType=${searchType}" aria-label="Next">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </c:if>
-      </div>
+                            <div class="rating">
+                                <div class="rating-stars">
+                                    <%
+                                        double rating = movie.getRating();
+                                        int fullStars = (int) Math.floor(rating / 2);
+                                        boolean halfStar = (rating / 2) - fullStars >= 0.5;
+
+                                        for(int i = 0; i < fullStars; i++) {
+                                            out.print("<i class='bi bi-star-fill'></i>");
+                                        }
+
+                                        if(halfStar) {
+                                            out.print("<i class='bi bi-star-half'></i>");
+                                        }
+
+                                        int emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+                                        for(int i = 0; i < emptyStars; i++) {
+                                            out.print("<i class='bi bi-star'></i>");
+                                        }
+                                    %>
+                                </div>
+                                <span class="rating-value"><%= movie.getRating() %>/10</span>
+                            </div>
+
+                            <div class="movie-actions">
+                                <a href="<%= request.getContextPath() %>/movie-details?id=<%= movie.getMovieId() %>" class="movie-action-btn">
+                                    <i class="bi bi-info-circle"></i> Details
+                                </a>
+                                <a href="<%= request.getContextPath() %>/update-movie?id=<%= movie.getMovieId() %>" class="movie-action-btn">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                                <a href="<%= request.getContextPath() %>/delete-movie?id=<%= movie.getMovieId() %>" class="movie-action-btn">
+                                    <i class="bi bi-trash"></i> Delete
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        <% } %>
     </div>
-  </div>
-  <!-- Main Content End -->
 
-  <!-- Footer Start -->
-  <footer class="bg-dark text-white py-4 mt-5">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-4 mb-3">
-          <h5>About FilmHorizon</h5>
-          <p class="text-muted">Your one-stop destination for renting and enjoying the best of cinema.</p>
-        </div>
-        <div class="col-md-4 mb-3">
-          <h5>Quick Links</h5>
-          <ul class="list-unstyled">
-            <li><a href="${pageContext.request.contextPath}/">Home</a></li>
-            <li><a href="${pageContext.request.contextPath}/search-movie">Movies</a></li>
-            <li><a href="${pageContext.request.contextPath}/top-rated">Top Rated</a></li>
-            <li><a href="${pageContext.request.contextPath}/view-watchlist">Watchlist</a></li>
-          </ul>
-        </div>
-        <div class="col-md-4 mb-3">
-          <h5>Connect With Us</h5>
-          <div class="d-flex gap-3 mt-3">
-            <a href="#" class="text-white"><i class="fab fa-facebook fa-lg"></i></a>
-            <a href="#" class="text-white"><i class="fab fa-twitter fa-lg"></i></a>
-            <a href="#" class="text-white"><i class="fab fa-instagram fa-lg"></i></a>
-            <a href="#" class="text-white"><i class="fab fa-youtube fa-lg"></i></a>
-          </div>
-        </div>
-      </div>
-      <hr>
-      <div class="text-center">
-        <p class="mb-0">&copy; 2025 FilmHorizon. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
-  <!-- Footer End -->
-
-  <!-- Bootstrap JavaScript Bundle with Popper -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Fade in animation for elements
+        document.addEventListener('DOMContentLoaded', function() {
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach((element, index) => {
+                element.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
 </body>
 </html>

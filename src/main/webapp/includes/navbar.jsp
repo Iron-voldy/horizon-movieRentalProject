@@ -1,115 +1,177 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="com.movierental.model.user.User" %>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<style>
+    :root {
+        --primary-color: #6C63FF;
+        --secondary-color: #FF6584;
+        --background-dark: #121212;
+        --navbar-bg: rgba(30, 30, 30, 0.8);
+        --text-primary: #FFFFFF;
+        --text-secondary: #B0B0B0;
+        --accent-color: #00C8FF;
+    }
+
+    .navbar {
+        background-color: var(--navbar-bg) !important;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .navbar-brand {
+        color: var(--text-primary) !important;
+        font-weight: 700;
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        transition: all 0.3s ease;
+    }
+
+    .navbar-brand:hover {
+        transform: scale(1.05);
+    }
+
+    .navbar-dark .navbar-nav .nav-link {
+        color: var(--text-secondary) !important;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .navbar-dark .navbar-nav .nav-link:hover,
+    .navbar-dark .navbar-nav .nav-link.active {
+        color: var(--text-primary) !important;
+    }
+
+    .navbar-dark .navbar-nav .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        transition: width 0.3s ease;
+    }
+
+    .navbar-dark .navbar-nav .nav-link:hover::after,
+    .navbar-dark .navbar-nav .nav-link.active::after {
+        width: 100%;
+    }
+
+    .navbar-dark .navbar-toggler {
+        border-color: rgba(255,255,255,0.1);
+    }
+
+    .navbar-dark .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,255,255,0.7)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+    }
+
+    .dropdown-menu {
+        background-color: var(--background-dark);
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .dropdown-menu .dropdown-item {
+        color: var(--text-secondary);
+        transition: all 0.3s ease;
+    }
+
+    .dropdown-menu .dropdown-item:hover,
+    .dropdown-menu .dropdown-item:focus {
+        background-color: rgba(255,255,255,0.1);
+        color: var(--text-primary);
+    }
+
+    .dropdown-menu .dropdown-divider {
+        border-top-color: rgba(255,255,255,0.1);
+    }
+
+    @media (max-width: 992px) {
+        .navbar {
+            background-color: var(--background-dark) !important;
+            backdrop-filter: none;
+        }
+    }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
-        <a class="navbar-brand" href="${pageContext.request.contextPath}/index.jsp">
-            <i class="fas fa-film"></i> Horizon Movie Rental
-        </a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <a class="navbar-brand" href="<%= request.getContextPath() %>/">FilmFlux</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mr-auto">
+            <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="${pageContext.request.contextPath}/index.jsp">Home</a>
+                    <a class="nav-link" href="<%= request.getContextPath() %>/">
+                        <i class="bi bi-house-fill"></i> Home
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="${pageContext.request.contextPath}/search-movie">Movies</a>
+                    <a class="nav-link" href="<%= request.getContextPath() %>/search-movie">
+                        <i class="bi bi-film"></i> Movies
+                    </a>
                 </li>
-                <c:if test="${not empty sessionScope.userId}">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="watchlistDropdown" role="button"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Watchlist
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="watchlistDropdown">
-                            <a class="dropdown-item" href="${pageContext.request.contextPath}/view-watchlist">View Watchlist</a>
-                            <a class="dropdown-item" href="${pageContext.request.contextPath}/recently-watched">Recently Watched</a>
-                        </div>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="rentalDropdown" role="button"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Rentals
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="rentalDropdown">
-                            <a class="dropdown-item" href="${pageContext.request.contextPath}/rental-history">Rental History</a>
-                        </div>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="recommendationsDropdown" role="button"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Recommendations
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="recommendationsDropdown">
-                            <a class="dropdown-item" href="${pageContext.request.contextPath}/view-recommendations?type=personal">Personal Recommendations</a>
-                            <a class="dropdown-item" href="${pageContext.request.contextPath}/view-recommendations?type=general">General Recommendations</a>
-                            <a class="dropdown-item" href="${pageContext.request.contextPath}/top-rated">Top Rated Movies</a>
-                        </div>
-                    </li>
-                </c:if>
+                <li class="nav-item">
+                    <a class="nav-link" href="<%= request.getContextPath() %>/rental-history">
+                        <i class="bi bi-collection-play"></i> My Rentals
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="<%= request.getContextPath() %>/view-watchlist">
+                        <i class="bi bi-bookmark-star"></i> Watchlist
+                    </a>
+                </li>
+                <%
+                    String currentUri = request.getRequestURI();
+                    boolean isRecommendationPage = currentUri.contains("/recommendation/") ||
+                                                  request.getServletPath().contains("recommendations") ||
+                                                  request.getServletPath().contains("top-rated") ||
+                                                  request.getServletPath().contains("genre-recommendations");
+                %>
+               <li class="nav-item dropdown">
+                   <a class="nav-link dropdown-toggle <%= isRecommendationPage ? "active" : "" %>" href="#" id="recommendationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                       <i class="bi bi-lightning-fill"></i> Recommendations
+                   </a>
+                   <ul class="dropdown-menu" aria-labelledby="recommendationsDropdown">
+                       <li><a class="dropdown-item" href="<%= request.getContextPath() %>/view-recommendations">View Recommendations</a></li>
+                       <li><a class="dropdown-item" href="<%= request.getContextPath() %>/top-rated">Top Rated</a></li>
+                       <li><hr class="dropdown-divider"></li>
+                       <li><a class="dropdown-item" href="<%= request.getContextPath() %>/manage-recommendations">Manage Recommendations</a></li>
+                       <li><a class="dropdown-item" href="<%= request.getContextPath() %>/manage-recommendations?action=add&type=general">Add Recommendation</a></li>
+                   </ul>
+               </li>
             </ul>
-            <ul class="navbar-nav">
-                <c:choose>
-                    <c:when test="${not empty sessionScope.userId}">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-user-circle"></i> ${sessionScope.username}
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="${pageContext.request.contextPath}/update-profile">My Profile</a>
-                                <a class="dropdown-item" href="${pageContext.request.contextPath}/user-reviews">My Reviews</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Logout</a>
-                            </div>
-                        </li>
-                    </c:when>
-                    <c:otherwise>
-                        <li class="nav-item">
-                            <a class="nav-link" href="${pageContext.request.contextPath}/login">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="${pageContext.request.contextPath}/register">Register</a>
-                        </li>
-                    </c:otherwise>
-                </c:choose>
+            <ul class="navbar-nav ms-auto">
+                <%
+                    User currentUser = (User) session.getAttribute("user");
+                    if (currentUser != null) {
+                %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/user/profile.jsp">
+                            <i class="bi bi-person-circle"></i> <%= currentUser.getUsername() %>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/logout">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                <% } else { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/login">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/register">
+                            <i class="bi bi-person-plus"></i> Register
+                        </a>
+                    </li>
+                <% } %>
             </ul>
         </div>
     </div>
 </nav>
-
-<!-- Display success message if present -->
-<c:if test="${not empty sessionScope.successMessage}">
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        ${sessionScope.successMessage}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <c:remove var="successMessage" scope="session" />
-</c:if>
-
-<!-- Display error message if present -->
-<c:if test="${not empty sessionScope.errorMessage}">
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        ${sessionScope.errorMessage}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <c:remove var="errorMessage" scope="session" />
-</c:if>
-
-<!-- Display info message if present -->
-<c:if test="${not empty sessionScope.infoMessage}">
-    <div class="alert alert-info alert-dismissible fade show" role="alert">
-        ${sessionScope.infoMessage}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <c:remove var="infoMessage" scope="session" />
-</c:if>

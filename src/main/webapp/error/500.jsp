@@ -1,139 +1,59 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" isErrorPage="true" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page isErrorPage="true" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>500 - Server Error | Horizon Movie Rental</title>
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/styles.css">
-
+    <title>500 - Internal Server Error</title>
     <style>
-        .error-template {
-            padding: 40px 15px;
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
             text-align: center;
         }
-
-        .error-actions {
-            margin-top: 15px;
-            margin-bottom: 15px;
+        .error-container {
+            background-color: #1e1e1e;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255,0,0,0.3);
         }
-
-        .error-actions .btn {
-            margin-right: 10px;
+        h1 {
+            color: #ff0000;
+            font-size: 4rem;
         }
-
+        p {
+            color: #a0a0a0;
+        }
+        a {
+            color: #8a2be2;
+            text-decoration: none;
+        }
         .error-details {
             margin-top: 20px;
-            margin-bottom: 20px;
-        }
-
-        .error-icon {
-            font-size: 100px;
-            color: #dc3545;
-            margin-bottom: 20px;
-        }
-
-        .error-code {
-            font-size: 36px;
-            font-weight: bold;
-            color: #343a40;
-        }
-
-        .error-message {
-            background-color: #f8f9fa;
-            border-left: 5px solid #dc3545;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-            text-align: left;
-            font-family: monospace;
-            overflow-x: auto;
+            font-size: 0.8rem;
+            color: #ff6666;
         }
     </style>
 </head>
 <body>
-    <!-- Include Header/Navbar -->
-    <jsp:include page="/includes/navbar.jsp" />
+    <div class="error-container">
+        <h1>500</h1>
+        <h2>Internal Server Error</h2>
+        <p>Something went wrong on our end. Our team has been notified.</p>
+        <a href="/">Return to Home</a>
 
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="error-template">
-                    <div class="error-icon">
-                        <i class="fas fa-cog fa-spin"></i>
-                    </div>
-                    <h1 class="error-code">500</h1>
-                    <h2>Internal Server Error</h2>
-                    <div class="error-details">
-                        Sorry, something went wrong on our server. Our technical team has been notified and
-                        we're working to fix the issue as quickly as possible.
-                    </div>
-
-                    <% if (exception != null) { %>
-                        <div class="error-message">
-                            <h5>Error Details:</h5>
-                            <p><strong>Type:</strong> <%= exception.getClass().getName() %></p>
-                            <p><strong>Message:</strong> <%= exception.getMessage() %></p>
-
-                            <%
-                                // Only show stack trace in development environment
-                                String env = application.getInitParameter("environment");
-                                if (env != null && env.equals("development")) {
-                            %>
-                                <p><strong>Stack Trace:</strong></p>
-                                <pre>
-                                <%
-                                    for (StackTraceElement element : exception.getStackTrace()) {
-                                        out.println("  at " + element.toString());
-                                    }
-                                %>
-                                </pre>
-                            <% } %>
-                        </div>
-                    <% } %>
-
-                    <div class="error-actions">
-                        <a href="${pageContext.request.contextPath}/index.jsp" class="btn btn-primary btn-lg">
-                            <i class="fas fa-home"></i> Back to Home
-                        </a>
-                        <button onclick="window.location.reload();" class="btn btn-secondary btn-lg">
-                            <i class="fas fa-sync"></i> Try Again
-                        </button>
-                    </div>
-                    <div class="mt-4">
-                        <p class="text-muted">
-                            <small>Error path: ${pageContext.errorData.requestURI}</small>
-                        </p>
-                    </div>
-                </div>
+        <% if (exception != null) { %>
+            <div class="error-details">
+                <h3>Error Details:</h3>
+                <p><%= exception.getMessage() %></p>
             </div>
-        </div>
+        <% } %>
     </div>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-white mt-5 py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>Horizon Movie Rental</h5>
-                    <p>Your premier destination for movie rentals.</p>
-                </div>
-                <div class="col-md-6 text-right">
-                    <p>&copy; 2025 Horizon Movie Rental. All rights reserved.</p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- jQuery and Bootstrap Bundle (includes Popper) -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,325 +1,712 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="com.movierental.model.user.User" %>
 <%@ page import="com.movierental.model.movie.Movie" %>
-<%@ page import="com.movierental.model.movie.MovieManager" %>
 <%@ page import="com.movierental.model.review.Review" %>
-<%@ page import="com.movierental.model.review.ReviewManager" %>
+<%@ page import="com.movierental.model.review.VerifiedReview" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.text.SimpleDateFormat" %>
-<%
-  // Get user from session
-  User user = (User) session.getAttribute("user");
-
-  // Get movieId parameter
-  String movieId = request.getParameter("movieId");
-
-  if (movieId == null || movieId.trim().isEmpty()) {
-    response.sendRedirect(request.getContextPath() + "/search-movie");
-    return;
-  }
-
-  // Get movie details
-  MovieManager movieManager = new MovieManager(application);
-  Movie movie = movieManager.getMovieById(movieId);
-
-  if (movie == null) {
-    session.setAttribute("errorMessage", "Movie not found");
-    response.sendRedirect(request.getContextPath() + "/search-movie");
-    return;
-  }
-
-  // Get all reviews for the movie
-  ReviewManager reviewManager = new ReviewManager(application);
-  List<Review> reviews = reviewManager.getReviewsByMovie(movieId);
-
-  // Get review statistics
-  double averageRating = reviewManager.calculateAverageRating(movieId);
-  int verifiedReviewsCount = reviewManager.countVerifiedReviews(movieId);
-  int guestReviewsCount = reviewManager.countGuestReviews(movieId);
-  Map<Integer, Integer> ratingDistribution = reviewManager.getRatingDistribution(movieId);
-
-  // Check if the current user has already reviewed this movie
-  boolean hasReviewed = false;
-  Review userReview = null;
-
-  if (user != null) {
-    userReview = reviewManager.getUserReviewForMovie(user.getUserId(), movieId);
-    hasReviewed = (userReview != null);
-  }
-
-  // Date formatter
-  SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
-%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reviews for <%= movie.getTitle() %> - FilmHorizon</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/style.css">
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Reviews - Movie Rental System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --neon-blue: #00c8ff;
+            --neon-purple: #8a2be2;
+            --neon-pink: #ff00ff;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --card-secondary: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #aaaaaa;
+            --input-bg: #333;
+            --input-border: #444;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding-bottom: 60px;
+            background-image:
+                radial-gradient(circle at 90% 10%, rgba(0, 200, 255, 0.15) 0%, transparent 30%),
+                radial-gradient(circle at 10% 90%, rgba(255, 0, 255, 0.1) 0%, transparent 30%);
+        }
+
+        .navbar {
+            background-color: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #333;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: var(--text-primary);
+            margin: 0 10px;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--neon-blue);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.3s;
+        }
+
+        .nav-link:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        .container {
+            margin-top: 30px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #333;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background-color: var(--card-secondary);
+            color: var(--neon-blue);
+            font-weight: 600;
+            border-bottom: 1px solid #444;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header i {
+            margin-right: 10px;
+            color: var(--neon-purple);
+            font-size: 1.2rem;
+        }
+
+        .movie-header {
+            background: linear-gradient(135deg, rgba(0, 200, 255, 0.2), rgba(138, 43, 226, 0.2));
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+        }
+
+        .movie-poster {
+            width: 120px;
+            height: 180px;
+            background: linear-gradient(135deg, #333, #222);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            color: #555;
+            font-size: 2.5rem;
+            margin-right: 20px;
+        }
+
+        .movie-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .movie-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .movie-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .badge-blue {
+            background: linear-gradient(to right, #0277bd, #00c8ff);
+            color: white;
+            box-shadow: 0 0 10px rgba(0, 200, 255, 0.4);
+        }
+
+        .btn-neon {
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.3);
+        }
+
+        .btn-neon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.6);
+            color: white;
+        }
+
+        .btn-outline-neon {
+            background: transparent;
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            font-weight: 600;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .btn-outline-neon:hover {
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            color: white;
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.3);
+        }
+
+        .alert-success {
+            background-color: rgba(0, 51, 0, 0.7);
+            color: #66ff66;
+            border-color: #005500;
+            border-radius: 8px;
+        }
+
+        .alert-danger {
+            background-color: rgba(51, 0, 0, 0.7);
+            color: #ff6666;
+            border-color: #550000;
+            border-radius: 8px;
+        }
+
+        .rating-summary {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .rating-large {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-right: 15px;
+        }
+
+        .rating-stars {
+            color: #ffd700;
+            font-size: 1.2rem;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+
+        .rating-count {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+        .rating-bars {
+            flex-grow: 1;
+            padding-left: 15px;
+        }
+
+        .rating-bar-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .rating-label {
+            width: 30px;
+            text-align: right;
+            margin-right: 10px;
+            color: var(--text-secondary);
+        }
+
+        .rating-bar-bg {
+            flex-grow: 1;
+            height: 8px;
+            background-color: #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .rating-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            border-radius: 4px;
+        }
+
+        .rating-count-label {
+            width: 35px;
+            text-align: left;
+            margin-left: 10px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .review-card {
+            background-color: rgba(30, 30, 30, 0.5);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .review-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .review-user {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 10px;
+            box-shadow: 0 0 10px rgba(0, 200, 255, 0.4);
+        }
+
+        .review-username {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .review-date {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .review-stars {
+            color: #ffd700;
+            font-size: 1.1rem;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+
+        .review-content {
+            margin-top: 10px;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .verified-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 10px;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            color: white;
+            box-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+        }
+
+        .guest-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 10px;
+            background: #444;
+            color: #ddd;
+        }
+
+        .your-review {
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.3);
+        }
+
+        .review-actions {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .review-action-btn {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .review-action-btn i {
+            margin-right: 5px;
+        }
+
+        .btn-edit {
+            background-color: #0288d1;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background-color: #0277bd;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #d32f2f;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background-color: #c62828;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .empty-reviews {
+            text-align: center;
+            padding: 30px 15px;
+        }
+
+        .empty-reviews i {
+            font-size: 3rem;
+            color: #444;
+            margin-bottom: 15px;
+        }
+
+        .empty-message {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-  <!-- Navbar Start -->
-  <div class="navbar-dark">
-    <nav class="navbar navbar-expand-lg navbar-dark container">
-      <a class="navbar-brand py-2" href="${pageContext.request.contextPath}/">
-        <img src="${pageContext.request.contextPath}/img/brand/brand-logo.png" width="120" height="40" alt="Brand Logo">
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+    <%
+        // Get user from session (if logged in)
+        User user = (request.getSession(false) != null) ?
+                    (User) request.getSession().getAttribute("user") : null;
 
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/">Home</a>
-          </li>
-          <li class="nav-item active">
-            <a class="nav-link" href="${pageContext.request.contextPath}/search-movie">Movies</a>
-          </li>
+        // Get data from request attributes
+        Movie movie = (Movie) request.getAttribute("movie");
+        List<Review> reviews = (List<Review>) request.getAttribute("reviews");
+        double averageRating = (Double) request.getAttribute("averageRating");
+        int verifiedReviewsCount = (Integer) request.getAttribute("verifiedReviewsCount");
+        int guestReviewsCount = (Integer) request.getAttribute("guestReviewsCount");
+        Map<Integer, Integer> ratingDistribution = (Map<Integer, Integer>) request.getAttribute("ratingDistribution");
+        boolean hasReviewed = (Boolean) request.getAttribute("hasReviewed");
+        Review userReview = (Review) request.getAttribute("userReview");
 
-          <% if (user != null) { %>
-            <!-- User dropdown menu -->
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                My Account
-              </a>
-              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">Profile</a></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/view-watchlist">Watchlist</a></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/rental-history">Rentals</a></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/user-reviews">My Reviews</a></li>
-                <li><hr class="dropdown-divider"></li>
-               <li><a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Logout</a></li>
-                             </ul>
-                           </li>
-                         <% } else { %>
-                           <li class="nav-item">
-                             <a class="nav-link" href="${pageContext.request.contextPath}/login">
-                               <img src="${pageContext.request.contextPath}/img/brand/white-button-login.png" width="33" height="33" alt="Login">
-                             </a>
-                           </li>
-                         <% } %>
-                       </ul>
-                     </div>
-                   </nav>
-                 </div>
-                 <!-- Navbar End -->
+        // Validate that movie is not null
+        if (movie == null) {
+            response.sendRedirect(request.getContextPath() + "/search-movie");
+            return;
+        }
 
-                 <!-- Movie Reviews Section -->
-                 <div class="container py-5">
-                   <!-- Show success message if any -->
-                   <% if(session.getAttribute("successMessage") != null) { %>
-                     <div class="alert alert-success" role="alert">
-                       <%= session.getAttribute("successMessage") %>
-                       <% session.removeAttribute("successMessage"); %>
-                     </div>
-                   <% } %>
+        // Format date
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
 
-                   <!-- Show error message if any -->
-                   <% if(session.getAttribute("errorMessage") != null) { %>
-                     <div class="alert alert-danger" role="alert">
-                       <%= session.getAttribute("errorMessage") %>
-                       <% session.removeAttribute("errorMessage"); %>
-                     </div>
-                   <% } %>
+        // Total reviews count
+        int totalReviews = (reviews != null) ? reviews.size() : 0;
+    %>
 
-                   <div class="row mb-5">
-                     <div class="col-lg-4 mb-4">
-                       <img src="${pageContext.request.contextPath}/image-servlet?movieId=<%= movie.getMovieId() %>"
-                         class="img-fluid rounded" alt="<%= movie.getTitle() %> Poster">
-                     </div>
-                     <div class="col-lg-8">
-                       <h2 class="mb-3"><%= movie.getTitle() %> (<%= movie.getReleaseYear() %>)</h2>
-                       <div class="d-flex align-items-center mb-3">
-                         <h4 class="mb-0 me-3">
-                           <% for (int i = 1; i <= 5; i++) { %>
-                             <% if (i <= Math.round(averageRating)) { %>
-                               <i class="fas fa-star text-warning"></i>
-                             <% } else { %>
-                               <i class="far fa-star text-warning"></i>
-                             <% } %>
-                           <% } %>
-                         </h4>
-                         <h4 class="mb-0"><%= String.format("%.1f", averageRating) %>/5</h4>
-                         <span class="ms-3 text-muted">(<%= reviews.size() %> reviews)</span>
-                       </div>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="<%= request.getContextPath() %>/">FilmFlux</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/">
+                            <i class="bi bi-house-fill"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/search-movie">
+                            <i class="bi bi-film"></i> Movies
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/rental-history">
+                            <i class="bi bi-collection-play"></i> My Rentals
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/watchlist/watchlist.jsp">
+                            <i class="bi bi-bookmark-star"></i> Watchlist
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <% if (user != null) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<%= request.getContextPath() %>/user/profile.jsp">
+                                <i class="bi bi-person-circle"></i> <%= user.getUsername() %>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<%= request.getContextPath() %>/logout">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a>
+                        </li>
+                    <% } else { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<%= request.getContextPath() %>/login">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<%= request.getContextPath() %>/register">
+                                <i class="bi bi-person-plus"></i> Register
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-                       <p><strong>Director:</strong> <%= movie.getDirector() %></p>
-                       <p><strong>Genre:</strong> <%= movie.getGenre() %></p>
+    <div class="container">
+        <!-- Flash messages -->
+        <%
+            // Check for messages from session
+            String successMessage = (String) request.getSession().getAttribute("successMessage");
+            String errorMessage = (String) request.getSession().getAttribute("errorMessage");
 
-                       <div class="mb-4">
-                         <div class="d-flex align-items-center">
-                           <h5 class="me-3 mb-0">Review Breakdown:</h5>
-                           <span class="badge bg-success"><%= verifiedReviewsCount %> Verified</span>
-                           <span class="badge bg-secondary ms-2"><%= guestReviewsCount %> Guest</span>
-                         </div>
-                       </div>
+            if(successMessage != null) {
+                out.println("<div class='alert alert-success'>");
+                out.println("<i class='bi bi-check-circle-fill me-2'></i>");
+                out.println(successMessage);
+                out.println("</div>");
+                request.getSession().removeAttribute("successMessage");
+            }
 
-                       <div class="d-flex">
-                         <a href="${pageContext.request.contextPath}/movie-details?id=<%= movie.getMovieId() %>" class="btn btn-outline-light me-2">
-                           <i class="fas fa-info-circle me-2"></i>Movie Details
-                         </a>
-                         <a href="${pageContext.request.contextPath}/rent-movie?id=<%= movie.getMovieId() %>" class="btn btn-primary me-2">
-                           <i class="fas fa-play me-2"></i>Rent Now
-                         </a>
-                         <a href="${pageContext.request.contextPath}/add-to-watchlist?movieId=<%= movie.getMovieId() %>" class="btn btn-outline-warning">
-                           <i class="fas fa-heart me-2"></i>Add to Watchlist
-                         </a>
-                       </div>
-                     </div>
-                   </div>
+            if(errorMessage != null) {
+                out.println("<div class='alert alert-danger'>");
+                out.println("<i class='bi bi-exclamation-triangle-fill me-2'></i>");
+                out.println(errorMessage);
+                out.println("</div>");
+                request.getSession().removeAttribute("errorMessage");
+            }
+        %>
 
-                   <div class="row">
-                     <!-- Rating Distribution -->
-                     <div class="col-lg-4 mb-4">
-                       <div class="profile-container h-100">
-                         <h4 class="mb-4">Rating Distribution</h4>
+        <!-- Movie Header -->
+        <div class="movie-header">
+            <div class="movie-poster">
+                <i class="bi bi-film"></i>
+            </div>
+            <div>
+                <h1 class="movie-title"><%= movie.getTitle() %></h1>
+                <div class="movie-subtitle">
+                    <%= movie.getDirector() %> &bull; <%= movie.getReleaseYear() %>
+                </div>
+                <div>
+                    <span class="movie-badge badge-blue"><%= movie.getGenre() %></span>
+                </div>
 
-                         <% for (int i = 5; i >= 1; i--) { %>
-                           <div class="d-flex align-items-center mb-3">
-                             <div class="me-2" style="width: 70px;">
-                               <%= i %> <i class="fas fa-star text-warning"></i>
-                             </div>
-                             <div class="progress flex-grow-1" style="height: 18px; background-color: #333;">
-                               <%
-                                 int count = ratingDistribution.containsKey(i) ? ratingDistribution.get(i) : 0;
-                                 int percentage = reviews.size() > 0 ? (count * 100 / reviews.size()) : 0;
-                               %>
-                               <div class="progress-bar bg-warning" role="progressbar" style="width: <%= percentage %>%;"
-                                 aria-valuenow="<%= percentage %>" aria-valuemin="0" aria-valuemax="100"><%= count %></div>
-                             </div>
-                           </div>
-                         <% } %>
+                <div class="rating-summary">
+                    <div class="rating-large"><%= String.format("%.1f", averageRating) %></div>
+                    <div>
+                        <div class="rating-stars">
+                            <%
+                                // Display stars based on average rating
+                                int fullStars = (int) Math.floor(averageRating);
+                                boolean halfStar = (averageRating - fullStars) >= 0.5;
 
-                         <div class="mt-4">
-                           <% if (hasReviewed) { %>
-                             <div class="alert alert-info">
-                               <i class="fas fa-info-circle me-2"></i>You've already reviewed this movie
-                             </div>
-                             <a href="${pageContext.request.contextPath}/update-review?reviewId=<%= userReview.getReviewId() %>" class="btn btn-primary w-100">
-                               <i class="fas fa-edit me-2"></i>Edit Your Review
-                             </a>
-                           <% } else { %>
-                             <a href="${pageContext.request.contextPath}/add-review?movieId=<%= movie.getMovieId() %>" class="btn btn-primary w-100">
-                               <i class="fas fa-pen me-2"></i>Write a Review
-                             </a>
-                           <% } %>
-                         </div>
-                       </div>
-                     </div>
+                                for (int i = 0; i < fullStars; i++) {
+                                    out.print("<i class='bi bi-star-fill'></i> ");
+                                }
 
-                     <!-- Reviews List -->
-                     <div class="col-lg-8">
-                       <div class="profile-container">
-                         <div class="d-flex justify-content-between mb-4">
-                           <h4>Reviews (<%= reviews.size() %>)</h4>
-                           <div class="dropdown">
-                             <button class="btn btn-outline-light dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                               <i class="fas fa-sort me-2"></i>Sort By
-                             </button>
-                             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="sortDropdown">
-                               <li><a class="dropdown-item" href="#">Most Recent</a></li>
-                               <li><a class="dropdown-item" href="#">Highest Rated</a></li>
-                               <li><a class="dropdown-item" href="#">Lowest Rated</a></li>
-                               <li><a class="dropdown-item" href="#">Verified Only</a></li>
-                             </ul>
-                           </div>
-                         </div>
+                                if (halfStar) {
+                                    out.print("<i class='bi bi-star-half'></i> ");
+                                }
 
-                         <% if (reviews.isEmpty()) { %>
-                           <div class="alert alert-info">
-                             <i class="fas fa-info-circle me-2"></i>There are no reviews for this movie yet. Be the first to write one!
-                           </div>
-                         <% } else { %>
-                           <% for (Review review : reviews) { %>
-                             <div class="card bg-dark mb-4">
-                               <div class="card-body">
-                                 <div class="d-flex justify-content-between mb-3">
-                                   <div>
-                                     <h5 class="card-title mb-0"><%= review.getUserName() %></h5>
-                                     <div class="text-muted small">
-                                       <%= dateFormat.format(review.getReviewDate()) %>
-                                       <% if (review.isVerified()) { %>
-                                         <span class="badge bg-success ms-2">Verified</span>
-                                       <% } %>
-                                     </div>
-                                   </div>
-                                   <div>
-                                     <% for (int i = 1; i <= 5; i++) { %>
-                                       <% if (i <= review.getRating()) { %>
-                                         <i class="fas fa-star text-warning"></i>
-                                       <% } else { %>
-                                         <i class="far fa-star text-warning"></i>
-                                       <% } %>
-                                     <% } %>
-                                   </div>
-                                 </div>
+                                int emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+                                for (int i = 0; i < emptyStars; i++) {
+                                    out.print("<i class='bi bi-star'></i> ");
+                                }
+                            %>
+                        </div>
+                        <div class="rating-count">
+                            Based on <%= totalReviews %> reviews
+                            (<%= verifiedReviewsCount %> verified, <%= guestReviewsCount %> guest)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                                 <p class="card-text"><%= review.getComment() %></p>
+        <!-- Rating Distribution and Actions -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <i class="bi bi-bar-chart-fill"></i> Rating Distribution
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="rating-bars">
+                            <% for (int i = 5; i >= 1; i--) {
+                                int count = ratingDistribution.getOrDefault(i, 0);
+                                double percentage = (totalReviews > 0) ? (count * 100.0 / totalReviews) : 0;
+                            %>
+                                <div class="rating-bar-row">
+                                    <div class="rating-label"><%= i %><i class="bi bi-star-fill ms-1" style="font-size: 0.7rem;"></i></div>
+                                    <div class="rating-bar-bg">
+                                        <div class="rating-bar" style="width: <%= percentage %>%;"></div>
+                                    </div>
+                                    <div class="rating-count-label"><%= count %></div>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-chat-right-text-fill"></i> Actions
+                    </div>
+                    <div class="card-body p-3">
+                        <% if (!hasReviewed) { %>
+                            <a href="<%= request.getContextPath() %>/add-review?movieId=<%= movie.getMovieId() %>" class="btn btn-neon w-100 mb-2">
+                                <i class="bi bi-pencil-square"></i> Write a Review
+                            </a>
+                        <% } else { %>
+                            <a href="<%= request.getContextPath() %>/update-review?reviewId=<%= userReview.getReviewId() %>" class="btn btn-outline-neon w-100 mb-2">
+                                <i class="bi bi-pencil-square"></i> Edit Your Review
+                            </a>
+                        <% } %>
+                        <a href="<%= request.getContextPath() %>/movie-details?id=<%= movie.getMovieId() %>" class="btn btn-outline-neon w-100">
+                            <i class="bi bi-film"></i> Back to Movie Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                                 <% if (user != null && user.getUserId().equals(review.getUserId())) { %>
-                                   <div class="text-end">
-                                     <a href="${pageContext.request.contextPath}/update-review?reviewId=<%= review.getReviewId() %>" class="btn btn-sm btn-outline-light">
-                                       <i class="fas fa-edit me-1"></i>Edit
-                                     </a>
-                                     <a href="${pageContext.request.contextPath}/delete-review?reviewId=<%= review.getReviewId() %>&showDeleteConfirm=true" class="btn btn-sm btn-outline-danger ms-2">
-                                       <i class="fas fa-trash-alt me-1"></i>Delete
-                                     </a>
-                                   </div>
-                                 <% } %>
-                               </div>
-                             </div>
-                           <% } %>
-                         <% } %>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-                 <!-- Movie Reviews Section End -->
+        <!-- Reviews List -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-star"></i> Reviews (<%= totalReviews %>)
+            </div>
+            <div class="card-body p-4">
+                <% if (reviews == null || reviews.isEmpty()) { %>
+                    <div class="empty-reviews">
+                        <i class="bi bi-chat-square-text"></i>
+                        <p class="empty-message">No reviews yet. Be the first to review this movie!</p>
+                        <a href="<%= request.getContextPath() %>/add-review?movieId=<%= movie.getMovieId() %>" class="btn btn-neon">
+                            <i class="bi bi-pencil-square"></i> Write a Review
+                        </a>
+                    </div>
+                <% } else { %>
+                    <% for (Review review : reviews) {
+                        boolean isUserReview = (user != null && user.getUserId().equals(review.getUserId()));
+                        boolean isVerified = review.isVerified();
 
-                 <!-- Footer Start -->
-                 <footer class="bg-dark text-white py-4 mt-5">
-                   <div class="container">
-                     <div class="row">
-                       <div class="col-md-4 mb-3">
-                         <h5>About FilmHorizon</h5>
-                         <p class="text-muted">Your one-stop destination for renting and enjoying the best of cinema.</p>
-                       </div>
-                       <div class="col-md-4 mb-3">
-                         <h5>Quick Links</h5>
-                         <ul class="list-unstyled">
-                           <li><a href="${pageContext.request.contextPath}/">Home</a></li>
-                           <li><a href="${pageContext.request.contextPath}/search-movie">Movies</a></li>
-                           <li><a href="${pageContext.request.contextPath}/top-rated">Top Rated</a></li>
-                           <li><a href="${pageContext.request.contextPath}/view-watchlist">Watchlist</a></li>
-                         </ul>
-                       </div>
-                       <div class="col-md-4 mb-3">
-                         <h5>Connect With Us</h5>
-                         <div class="d-flex gap-3 mt-3">
-                           <a href="#" class="text-white"><i class="fab fa-facebook fa-lg"></i></a>
-                           <a href="#" class="text-white"><i class="fab fa-twitter fa-lg"></i></a>
-                           <a href="#" class="text-white"><i class="fab fa-instagram fa-lg"></i></a>
-                           <a href="#" class="text-white"><i class="fab fa-youtube fa-lg"></i></a>
-                         </div>
-                       </div>
-                     </div>
-                     <hr>
-                     <div class="text-center">
-                       <p class="mb-0">&copy; 2025 FilmHorizon. All rights reserved.</p>
-                     </div>
-                   </div>
-                 </footer>
-                 <!-- Footer End -->
+                        // Get first letter of username for avatar
+                        String firstLetter = review.getUserName().substring(0, 1).toUpperCase();
+                    %>
+                        <div class="review-card <%= isUserReview ? "your-review" : "" %>">
+                            <div class="review-header">
+                                <div class="review-user">
+                                    <div class="user-avatar"><%= firstLetter %></div>
+                                    <div>
+                                        <div class="review-username">
+                                            <%= review.getUserName() %>
+                                            <% if (isVerified) { %>
+                                                <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                                            <% } else if (review.getUserId() == null) { %>
+                                                <span class="guest-badge"><i class="bi bi-person"></i> Guest</span>
+                                            <% } %>
+                                        </div>
+                                        <div class="review-date"><%= dateFormat.format(review.getReviewDate()) %></div>
+                                    </div>
+                                </div>
+                                <div class="review-stars">
+                                    <% for (int i = 1; i <= 5; i++) { %>
+                                        <i class="bi <%= (i <= review.getRating()) ? "bi-star-fill" : "bi-star" %>"></i>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <div class="review-content">
+                                <%= review.getComment() %>
+                            </div>
+                            <% if (isUserReview) { %>
+                                <div class="review-actions">
+                                    <a href="<%= request.getContextPath() %>/update-review?reviewId=<%= review.getReviewId() %>" class="review-action-btn btn-edit">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    <a href="<%= request.getContextPath() %>/delete-review?reviewId=<%= review.getReviewId() %>&confirm=yes"
+                                       class="review-action-btn btn-delete"
+                                       onclick="return confirm('Are you sure you want to delete this review?')">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </a>
+                                </div>
+                            <% } %>
+                        </div>
+                    <% } %>
+                <% } %>
+            </div>
+        </div>
+    </div>
 
-                 <!-- Bootstrap JavaScript Bundle with Popper -->
-                 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-               </body>
-               </html>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
