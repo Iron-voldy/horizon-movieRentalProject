@@ -4,32 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - FilmFlux</title>
+    <title>Login - Horizon</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --neon-blue: #00c8ff;
-            --neon-purple: #8a2be2;
-            --neon-pink: #ff00ff;
-            --dark-bg: #121212;
-            --card-bg: #1e1e1e;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0a0a0;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary: #ec4899;
+            --dark: #0f172a;
+            --darker: #020617;
+            --light-text: #f1f5f9;
+            --dark-text: #1e293b;
+            --gray-text: #94a3b8;
+            --card-bg: #1e293b;
+            --input-bg: #334155;
+            --border-color: #475569;
+            --success: #10b981;
+            --danger: #ef4444;
         }
 
         body {
-            background-color: var(--dark-bg);
-            color: var(--text-primary);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--darker);
+            color: var(--light-text);
+            font-family: 'Poppins', sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
-            background-image:
-                radial-gradient(circle at 90% 10%, rgba(0, 200, 255, 0.15) 0%, transparent 30%),
-                radial-gradient(circle at 10% 90%, rgba(255, 0, 255, 0.1) 0%, transparent 30%);
+            background-image: 
+                radial-gradient(circle at 90% 10%, rgba(37, 99, 235, 0.1) 0%, transparent 30%),
+                radial-gradient(circle at 10% 90%, rgba(236, 72, 153, 0.1) 0%, transparent 30%);
         }
 
         .login-container {
@@ -39,98 +47,102 @@
 
         .card {
             background-color: var(--card-bg);
-            border-radius: 15px;
-            border: 1px solid #333;
-            box-shadow: 0 0 30px rgba(0, 200, 255, 0.2);
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             overflow: hidden;
         }
 
         .card-header {
-            background: linear-gradient(135deg, rgba(0, 200, 255, 0.2), rgba(138, 43, 226, 0.2));
-            color: var(--neon-blue);
-            font-weight: 700;
+            background: linear-gradient(to right, rgba(37, 99, 235, 0.1), rgba(236, 72, 153, 0.1));
+            border-bottom: 1px solid var(--border-color);
+            padding: 2rem 1.5rem;
             text-align: center;
-            padding: 1.5rem;
-            border-bottom: 1px solid #333;
         }
 
         .card-body {
-            padding: 2rem;
+            padding: 2.5rem;
         }
 
-        .login-logo {
+        .brand-logo {
             font-size: 2.5rem;
             font-weight: 700;
-            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            background: linear-gradient(to right, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             display: block;
-            text-align: center;
+        }
+
+        .auth-title {
+            color: var(--light-text);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
         .form-label {
-            color: var(--neon-blue);
+            color: var(--light-text);
             font-weight: 500;
             margin-bottom: 0.5rem;
         }
 
         .form-control {
-            background-color: #2d2d2d;
-            border: 1px solid #444;
-            color: var(--text-primary);
-            border-radius: 8px;
-            padding: 12px 15px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--light-text);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
         }
 
         .form-control:focus {
-            background-color: #333;
-            color: var(--text-primary);
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 0 0.25rem rgba(0, 200, 255, 0.25);
+            background-color: var(--input-bg);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+            border-color: var(--primary);
+            color: var(--light-text);
         }
 
         .input-group-text {
-            background-color: #2d2d2d;
-            border: 1px solid #444;
-            color: var(--neon-blue);
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--primary);
         }
 
-        .btn-login {
-            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary), #3b82f6);
             border: none;
             color: white;
             font-weight: 600;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
             width: 100%;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
             transition: all 0.3s;
-            box-shadow: 0 0 15px rgba(0, 200, 255, 0.3);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.25);
         }
 
-        .btn-login:hover {
+        .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0, 200, 255, 0.4);
+            box-shadow: 0 10px 15px rgba(37, 99, 235, 0.35);
+            background: linear-gradient(to right, var(--primary-hover), #2563eb);
         }
 
-        .create-account {
+        .auth-links {
             text-align: center;
             margin-top: 1.5rem;
-            color: var(--text-secondary);
+            color: var(--gray-text);
         }
 
-        .create-account a {
-            color: var(--neon-blue);
+        .auth-links a {
+            color: var(--primary);
             text-decoration: none;
             font-weight: 600;
             transition: all 0.3s;
         }
 
-        .create-account a:hover {
-            color: var(--neon-pink);
-            text-shadow: 0 0 8px rgba(0, 200, 255, 0.5);
+        .auth-links a:hover {
+            color: var(--secondary);
         }
 
         .back-to-home {
@@ -139,7 +151,7 @@
         }
 
         .back-to-home a {
-            color: var(--text-secondary);
+            color: var(--gray-text);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -147,7 +159,7 @@
         }
 
         .back-to-home a:hover {
-            color: var(--neon-blue);
+            color: var(--primary);
         }
 
         .back-to-home i {
@@ -155,22 +167,22 @@
         }
 
         .alert {
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid transparent;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border: none;
         }
 
         .alert-danger {
-            background-color: rgba(220, 53, 69, 0.2);
-            color: #ff6b6b;
-            border-color: #dc3545;
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border-left: 4px solid var(--danger);
         }
 
         .alert-success {
-            background-color: rgba(40, 167, 69, 0.2);
-            color: #51cf66;
-            border-color: #28a745;
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-left: 4px solid var(--success);
         }
     </style>
 </head>
@@ -180,8 +192,9 @@
             <div class="col-lg-5 col-md-7">
                 <div class="card">
                     <div class="card-header">
-                        <span class="login-logo">FilmFlux</span>
-                        <h4 class="mb-0">Sign In</h4>
+                        <span class="brand-logo">Horizon</span>
+                        <h4 class="auth-title">Welcome Back</h4>
+                        <p class="text-muted mb-0">Sign in to your account</p>
                     </div>
                     <div class="card-body">
                         <% if(request.getAttribute("errorMessage") != null) { %>
@@ -216,12 +229,12 @@
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn btn-login">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
                             </button>
                         </form>
 
-                        <div class="create-account">
+                        <div class="auth-links">
                             Don't have an account? <a href="<%= request.getContextPath() %>/register">Create Account</a>
                         </div>
 

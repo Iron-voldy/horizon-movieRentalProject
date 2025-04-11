@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FilmFlux - Your Ultimate Movie Rental Platform</title>
+    <title>Horizon - Your Ultimate Movie Experience</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -14,40 +14,50 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary: #6C63FF;
-            --primary-dark: #5A52E0;
-            --secondary: #FF6584;
-            --dark: #151419;
-            --darker: #0F0E13;
-            --light: #F3F3F4;
-            --gray: #8B8B99;
-            --success: #4BD1A0;
-            --warning: #FFC965;
-            --danger: #FF6B78;
+            --primary: #7B68EE;
+            --primary-dark: #6A5ACD;
+            --secondary: #FF5252;
+            --dark: #141414;
+            --darker: #0D0D0D;
+            --light: #F5F5F5;
+            --gray: #888888;
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --danger: #FF5252;
+            --card-bg: #1E1E1E;
+            --card-border: #333333;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--dark);
+            background-color: var(--darker);
             color: var(--light);
+            min-height: 100vh;
             overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
         }
 
         /* Navbar Styles */
         .navbar {
-            background-color: rgba(15, 14, 19, 0.95);
+            background-color: rgba(13, 13, 13, 0.95);
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
         .navbar-brand {
             font-size: 1.8rem;
             font-weight: 700;
+            letter-spacing: 1px;
             background: linear-gradient(to right, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -59,8 +69,8 @@
             color: var(--light);
             margin: 0 15px;
             position: relative;
-            opacity: 0.8;
             transition: all 0.3s ease;
+            opacity: 0.8;
         }
 
         .nav-link:hover, .nav-link.active {
@@ -68,7 +78,7 @@
             color: var(--primary);
         }
 
-        .nav-link::after {
+        .nav-link:after {
             content: '';
             position: absolute;
             bottom: -5px;
@@ -79,7 +89,7 @@
             transition: width 0.3s ease;
         }
 
-        .nav-link:hover::after, .nav-link.active::after {
+        .nav-link:hover:after, .nav-link.active:after {
             width: 100%;
         }
 
@@ -89,13 +99,34 @@
             display: flex;
             align-items: center;
             padding: 100px 0 60px;
-            background-image:
-                radial-gradient(circle at 30% 100%, rgba(108, 99, 255, 0.2) 0%, transparent 40%),
-                radial-gradient(circle at 80% 20%, rgba(255, 101, 132, 0.2) 0%, transparent 30%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section:before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 70%;
+            height: 120%;
+            background: radial-gradient(circle, rgba(123, 104, 238, 0.15) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        .hero-section:after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            right: -20%;
+            width: 70%;
+            height: 120%;
+            background: radial-gradient(circle, rgba(255, 82, 82, 0.1) 0%, transparent 70%);
+            z-index: -1;
         }
 
         .hero-title {
-            font-size: 3.8rem;
+            font-size: 3.5rem;
             font-weight: 700;
             line-height: 1.2;
             margin-bottom: 25px;
@@ -115,42 +146,48 @@
         }
 
         .btn {
-            padding: 12px 30px;
+            padding: 12px 24px;
             font-weight: 600;
-            border-radius: 8px;
+            border-radius: 6px;
             transition: all 0.3s ease;
+            border: none;
         }
 
         .btn-primary {
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
-            border: none;
-            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            box-shadow: 0 4px 15px rgba(123, 104, 238, 0.4);
         }
 
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.6);
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 10px 20px rgba(123, 104, 238, 0.6);
         }
 
         .btn-outline-light {
-            border: 2px solid rgba(255,255,255,0.2);
+            border: 2px solid rgba(255, 255, 255, 0.2);
             color: var(--light);
         }
 
         .btn-outline-light:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border-color: var(--light);
+            transform: translateY(-3px);
         }
 
-        /* Feature Cards */
+        .hero-image {
+            animation: float 6s ease-in-out infinite;
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Features Section */
         .features-section {
             padding: 100px 0;
-            background-color: var(--darker);
+            background-color: var(--dark);
         }
 
         .section-title {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: 700;
             margin-bottom: 15px;
             text-align: center;
@@ -169,32 +206,33 @@
         }
 
         .feature-card {
-            background: rgba(21, 20, 25, 0.7);
-            border-radius: 16px;
-            padding: 40px 30px;
+            background: linear-gradient(to bottom right, rgba(30, 30, 30, 0.9), rgba(20, 20, 20, 0.9));
+            border-radius: 12px;
+            padding: 30px 25px;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
             height: 100%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
         .feature-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-            border-color: rgba(108, 99, 255, 0.3);
+            border-color: rgba(123, 104, 238, 0.3);
         }
 
         .feature-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 30px;
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 25px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(45deg, rgba(108, 99, 255, 0.1), rgba(255, 101, 132, 0.1));
+            background: linear-gradient(45deg, rgba(123, 104, 238, 0.15), rgba(255, 82, 82, 0.15));
             border-radius: 50%;
-            font-size: 2.5rem;
+            font-size: 2rem;
         }
 
         .feature-icon i {
@@ -204,7 +242,7 @@
         }
 
         .feature-title {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: 15px;
             color: var(--light);
@@ -219,30 +257,43 @@
         /* How It Works Section */
         .how-it-works {
             padding: 100px 0;
-            background-color: var(--dark);
+            background-color: var(--darker);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .how-it-works:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(123, 104, 238, 0.3), transparent);
         }
 
         .step-card {
-            display: flex;
-            margin-bottom: 30px;
+            background: linear-gradient(to bottom right, rgba(30, 30, 30, 0.9), rgba(20, 20, 20, 0.9));
+            border-radius: 12px;
             padding: 30px;
-            border-radius: 16px;
-            background: rgba(21, 20, 25, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
             transition: all 0.3s ease;
         }
 
         .step-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            border-color: rgba(108, 99, 255, 0.3);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(123, 104, 238, 0.3);
         }
 
         .step-number {
-            font-size: 4rem;
-            font-weight: 700;
+            font-size: 3.5rem;
+            font-weight: 800;
             line-height: 1;
-            margin-right: 30px;
+            margin-right: 25px;
             background: linear-gradient(to right, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -250,9 +301,10 @@
         }
 
         .step-content h3 {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            color: var(--light);
         }
 
         .step-content p {
@@ -262,9 +314,9 @@
 
         /* Footer */
         footer {
-            background-color: var(--darker);
+            background-color: var(--dark);
             padding: 60px 0 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .footer-logo {
@@ -320,7 +372,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            background: rgba(108, 99, 255, 0.1);
+            background: rgba(123, 104, 238, 0.1);
             color: var(--primary);
             transition: all 0.3s ease;
         }
@@ -336,7 +388,7 @@
             color: var(--gray);
             margin-top: 50px;
             padding-top: 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         /* Animation */
@@ -346,14 +398,10 @@
             100% { transform: translateY(0); }
         }
 
-        .hero-image {
-            animation: float 6s ease-in-out infinite;
-        }
-
         /* Responsive */
         @media (max-width: 992px) {
             .hero-title {
-                font-size: 3rem;
+                font-size: 2.8rem;
             }
 
             .hero-image {
@@ -367,7 +415,7 @@
 
         @media (max-width: 768px) {
             .hero-title {
-                font-size: 2.5rem;
+                font-size: 2.2rem;
             }
 
             .hero-subtitle {
@@ -375,7 +423,7 @@
             }
 
             .section-title {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
 
             .step-card {
@@ -396,9 +444,9 @@
     %>
 
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg fixed-top">
+    <nav class="navbar navbar-expand-lg fixed-top navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">FilmFlux</a>
+            <a class="navbar-brand" href="#">HORIZON</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -442,10 +490,10 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <h1 class="hero-title">Discover <span>Movies</span> Like Never Before</h1>
+                    <h1 class="hero-title">Experience Cinema <span>Excellence</span> at Home</h1>
                     <p class="hero-subtitle">
-                        Experience cinematic journeys with our premium movie streaming and rental service.
-                        Discover, rent, and enjoy thousands of titles at your fingertips.
+                        Discover a premium collection of movies from classics to blockbusters.
+                        Stream instantly with our seamless platform designed for movie enthusiasts.
                     </p>
                     <div class="d-flex gap-3">
                         <% if (user == null) { %>
@@ -458,7 +506,7 @@
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <img src="./includes/sideImg.png" alt="Hero Image" class="img-fluid hero-image">
+                    <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="Hero Image" class="img-fluid hero-image rounded-3">
                 </div>
             </div>
         </div>
@@ -467,14 +515,14 @@
     <!-- Features Section -->
     <section class="features-section" id="features">
         <div class="container">
-            <h2 class="section-title">Platform <span>Features</span></h2>
+            <h2 class="section-title">Why Choose <span>Horizon</span></h2>
             <p class="section-subtitle">Experience the best of modern movie rental services</p>
 
             <div class="row">
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="feature-card">
                         <div class="feature-icon">
-                            <i class="bi bi-search"></i>
+                            <i class="bi bi-collection-play"></i>
                         </div>
                         <h3 class="feature-title">Extensive Library</h3>
                         <p class="feature-description">
@@ -498,9 +546,9 @@
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="feature-card">
                         <div class="feature-icon">
-                            <i class="bi bi-cloud-download"></i>
+                            <i class="bi bi-speedometer2"></i>
                         </div>
-                        <h3 class="feature-title">Seamless Streaming</h3>
+                        <h3 class="feature-title">Instant Streaming</h3>
                         <p class="feature-description">
                             Rent and stream movies instantly with just a few clicks, no downloads or additional software required.
                         </p>
@@ -549,8 +597,8 @@
     <!-- How It Works Section -->
     <section class="how-it-works" id="how-it-works">
         <div class="container">
-            <h2 class="section-title">How It <span>Works</span></h2>
-            <p class="section-subtitle">Getting started with FilmFlux is simple</p>
+            <h2 class="section-title">How <span>Horizon</span> Works</h2>
+            <p class="section-subtitle">Start your cinematic journey in just a few simple steps</p>
 
             <div class="row mt-5">
                 <div class="col-lg-12">
@@ -558,7 +606,7 @@
                         <div class="step-number">01</div>
                         <div class="step-content">
                             <h3>Create Your Account</h3>
-                            <p>Sign up for a free account to get started. Provide your basic details and preferences to help us personalize your experience.</p>
+                            <p>Sign up for a free account to get started. Provide your basic details to personalize your experience.</p>
                         </div>
                     </div>
 
@@ -595,7 +643,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 col-md-6 mb-5">
-                    <div class="footer-logo">FilmFlux</div>
+                    <div class="footer-logo">HORIZON</div>
                     <p class="footer-text">
                         The ultimate destination for movie lovers. Rent, watch, and discover the magic of cinema.
                     </p>
@@ -639,7 +687,7 @@
             </div>
 
             <div class="copyright">
-                <p>&copy; 2024 FilmFlux. All Rights Reserved.</p>
+                <p>&copy; 2025 Horizon. All Rights Reserved.</p>
             </div>
         </div>
     </footer>

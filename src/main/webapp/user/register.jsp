@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - FilmFlux</title>
+    <title>Register - Horizon</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,149 +13,182 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary: #6C63FF;
-            --primary-dark: #5A52E0;
-            --secondary: #FF6584;
-            --dark: #151419;
-            --darker: #0F0E13;
-            --light: #F3F3F4;
-            --gray: #8B8B99;
-            --success: #4BD1A0;
-            --warning: #FFC965;
-            --danger: #FF6B78;
+            --primary: #7B68EE;
+            --primary-dark: #6A5ACD;
+            --secondary: #FF5252;
+            --dark: #141414;
+            --darker: #0D0D0D;
+            --light: #F5F5F5;
+            --gray: #888888;
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --danger: #FF5252;
+            --card-bg: #1E1E1E;
+            --card-border: #333333;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--dark);
+            background-color: var(--darker);
             color: var(--light);
             min-height: 100vh;
             display: flex;
             align-items: center;
-            background-image:
-                radial-gradient(circle at 30% 100%, rgba(108, 99, 255, 0.2) 0%, transparent 40%),
-                radial-gradient(circle at 80% 20%, rgba(255, 101, 132, 0.2) 0%, transparent 30%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 70%;
+            height: 120%;
+            background: radial-gradient(circle, rgba(123, 104, 238, 0.08) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            right: -20%;
+            width: 70%;
+            height: 120%;
+            background: radial-gradient(circle, rgba(255, 82, 82, 0.05) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
         }
 
         .register-container {
             padding: 40px 0;
+            position: relative;
+            z-index: 1;
         }
 
         .register-card {
-            background: rgba(15, 14, 19, 0.7);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(to bottom right, rgba(30, 30, 30, 0.9), rgba(20, 20, 20, 0.9));
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             overflow: hidden;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
         }
 
         .register-header {
             padding: 30px;
             text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: linear-gradient(to right, rgba(123, 104, 238, 0.05), rgba(255, 82, 82, 0.05));
         }
 
         .register-logo {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: 700;
+            letter-spacing: 2px;
             background: linear-gradient(to right, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+            margin-bottom: 0.8rem;
         }
 
         .register-title {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             color: var(--light);
             font-weight: 600;
             margin-bottom: 0;
         }
 
         .register-body {
-            padding: 40px;
+            padding: 30px;
         }
 
         .form-label {
             color: var(--light);
             font-weight: 500;
-            margin-bottom: 10px;
+            margin-bottom: 0.7rem;
+            font-size: 0.95rem;
         }
 
         .form-control {
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: rgba(30, 30, 30, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--light);
-            padding: 15px 20px;
-            font-size: 1rem;
-            border-radius: 10px;
-            transition: all 0.3s ease;
+            border-radius: 8px;
+            padding: 12px 15px;
+            transition: all 0.3s;
         }
 
         .form-control:focus {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: rgba(40, 40, 40, 0.7);
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(123, 104, 238, 0.25);
             color: var(--light);
         }
 
         .form-control::placeholder {
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.3);
         }
 
         .input-group-text {
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: rgba(30, 30, 30, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--gray);
-            border-radius: 10px;
+            color: var(--primary);
+            border-radius: 8px 0 0 8px;
         }
 
         .btn {
-            padding: 15px 25px;
+            padding: 12px 20px;
             font-weight: 600;
-            border-radius: 10px;
+            border-radius: 8px;
             transition: all 0.3s ease;
         }
 
         .btn-primary {
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
             border: none;
-            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(123, 104, 238, 0.3);
         }
 
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.6);
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 8px 20px rgba(123, 104, 238, 0.5);
         }
 
         .register-footer {
             text-align: center;
-            padding: 20px 40px 40px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 40px 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .login-link {
             color: var(--primary);
             text-decoration: none;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
         }
 
         .login-link:hover {
             color: var(--secondary);
+            text-shadow: 0 0 8px rgba(123, 104, 238, 0.5);
         }
 
         .back-home {
             display: inline-block;
-            margin-top: 30px;
+            margin-top: 20px;
             color: var(--gray);
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
+            font-size: 0.9rem;
         }
 
         .back-home:hover {
@@ -168,24 +201,24 @@
         }
 
         .alert {
-            border: none;
-            border-radius: 10px;
-            padding: 15px 20px;
+            border-radius: 8px;
+            padding: 15px;
             margin-bottom: 25px;
-            font-weight: 500;
+            border: none;
         }
 
         .alert-danger {
-            background-color: rgba(255, 107, 120, 0.2);
-            color: var(--danger);
-            border-left: 4px solid var(--danger);
+            background-color: rgba(255, 82, 82, 0.1);
+            color: #ff7070;
+            border-left: 4px solid var(--secondary);
         }
 
         .password-requirements {
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
+            background-color: rgba(30, 30, 30, 0.5);
+            border-radius: 8px;
             padding: 15px;
             margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .requirement {
@@ -213,6 +246,16 @@
             padding: 0 15px;
         }
 
+        .form-check-input {
+            background-color: rgba(30, 30, 30, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -235,7 +278,7 @@
             <div class="col-md-6">
                 <div class="register-card fade-in">
                     <div class="register-header">
-                        <div class="register-logo">FilmFlux</div>
+                        <div class="register-logo">HORIZON</div>
                         <h1 class="register-title">Create Your Account</h1>
                     </div>
 
@@ -248,7 +291,7 @@
                         <% } %>
 
                         <form action="<%= request.getContextPath() %>/register" method="post" id="registerForm">
-                            <div class="mb-4">
+                            <div class="mb-3">
                                 <label for="username" class="form-label">Username</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-person"></i></span>
@@ -257,7 +300,7 @@
                                 </div>
                             </div>
 
-                            <div class="mb-4">
+                            <div class="mb-3">
                                 <label for="fullName" class="form-label">Full Name</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
@@ -266,7 +309,7 @@
                                 </div>
                             </div>
 
-                            <div class="mb-4">
+                            <div class="mb-3">
                                 <label for="email" class="form-label">Email Address</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-envelope"></i></span>
@@ -302,7 +345,7 @@
                                 </div>
                             </div>
 
-                            <div class="mb-4">
+                            <div class="mb-3">
                                 <label for="confirmPassword" class="form-label">Confirm Password</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
@@ -439,10 +482,10 @@
                 passwordMatch.className = 'form-text mt-2';
             } else if (password.value === confirmPassword.value) {
                 passwordMatch.textContent = 'Passwords match';
-                passwordMatch.style.color = 'var(--success)';
+                passwordMatch.style.color = '#4CAF50';
             } else {
                 passwordMatch.textContent = 'Passwords do not match';
-                passwordMatch.style.color = 'var(--danger)';
+                passwordMatch.style.color = '#FF5252';
             }
         }
 
@@ -451,14 +494,9 @@
             if (password.value !== confirmPassword.value) {
                 event.preventDefault();
                 passwordMatch.textContent = 'Passwords do not match';
-                passwordMatch.style.color = 'var(--danger)';
+                passwordMatch.style.color = '#FF5252';
                 confirmPassword.focus();
             }
-        });
-
-        // Fade in animation when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelector('.register-card').classList.add('fade-in');
         });
     </script>
 </body>
